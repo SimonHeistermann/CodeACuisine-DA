@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+
+@theme {
+    --color-green-primary: #396039;
+    --color-green-light: #3960394D;
+    --color-beige: #FAF0E6;
+    --radius-card: 20px;
+}
