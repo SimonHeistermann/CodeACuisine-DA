@@ -4,6 +4,10 @@
 @theme {
     --color-green-primary: #396039;
     --color-green-light: #3960394D;
-    --color-beige: #FAF0E6;
+    --color-green-text: #008000;
+    --color-cream-primary: #FAF0E6;
+    --color-cream-light: #FAF0E64D;
     --radius-card: 20px;
+    --font-sans: 'Quicksand', sans-serif;
+    --font-ubuntu: 'Ubuntu', sans-serif;
 }

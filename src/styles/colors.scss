@@ -1,9 +1,17 @@
-$green-primary: #396039;
-$green-light: #39603933;
-$strong-green: #008000;
-$beige: #FAF0E6;
-$light-beige: #FAF0E64D;
+$primary-green: #396039;
+$light-green: #39603933;
+$text-green: #008000;
+$middle-green: #1E5515;
+$dark-green: #10310B;
+$primary-cream: #FAF0E6;
+$background-cream: #FAF0E6CC;
+$light-cream: #FAF0E64D;
 $grey: #686868;
 $black: #000000;
 $white: #FFFFFF;
 $bg-color: $white;
+
+$hero-bg: $primary-green;
+$hero-text: $primary-cream;
+$hero-button-bg: $primary-cream;
+$hero-button-text: $text-green;

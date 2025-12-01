@@ -1,0 +1,48 @@
+@use "sass:string";
+
+$font-path: './../../public/fonts/';
+$font-family-ubuntu: Ubuntu;
+$font-family-quicksand: Quicksand;
+
+@mixin font-face($family, $weight, $style: normal, $filename) {
+  @font-face {
+    font-display: swap;
+    font-family: $family;
+    font-style: $style;
+    font-weight: $weight;
+    src: url('#{$font-path}#{$filename}.woff2') format('woff2');
+  }
+}
+
+$ubuntu-fonts: (
+  300: 'ubuntu-v21-cyrillic_cyrillic-ext_greek_greek-ext_latin_latin-ext-300',
+  '300 italic': 'ubuntu-v21-cyrillic_cyrillic-ext_greek_greek-ext_latin_latin-ext-300italic',
+  400: 'ubuntu-v21-cyrillic_cyrillic-ext_greek_greek-ext_latin_latin-ext-regular',
+  '400 italic': 'ubuntu-v21-cyrillic_cyrillic-ext_greek_greek-ext_latin_latin-ext-italic',
+  500: 'ubuntu-v21-cyrillic_cyrillic-ext_greek_greek-ext_latin_latin-ext-500',
+  '500 italic': 'ubuntu-v21-cyrillic_cyrillic-ext_greek_greek-ext_latin_latin-ext-500italic',
+  700: 'ubuntu-v21-cyrillic_cyrillic-ext_greek_greek-ext_latin_latin-ext-700',
+  '700 italic': 'ubuntu-v21-cyrillic_cyrillic-ext_greek_greek-ext_latin_latin-ext-700italic',
+);
+
+@each $key, $filename in $ubuntu-fonts {
+  $key-str: string.unquote(#{$key});
+  $style: if(string.index($key-str, 'italic'), italic, normal);
+  $space-pos: string.index($key-str, ' ');
+  $weight: if($space-pos, string.slice($key-str, 1, $space-pos - 1), $key-str);
+  @include font-face($font-family-ubuntu, $weight, $style, $filename);
+}
+
+$quicksand-fonts: (
+  300: 'quicksand-v37-latin_latin-ext_vietnamese-300',
+  400: 'quicksand-v37-latin_latin-ext_vietnamese-regular',
+  500: 'quicksand-v37-latin_latin-ext_vietnamese-500',
+  600: 'quicksand-v37-latin_latin-ext_vietnamese-600',
+  700: 'quicksand-v37-latin_latin-ext_vietnamese-700',
+);
+
+@each $key, $filename in $quicksand-fonts {
+  $style: normal;
+  $weight: $key;
+  @include font-face($font-family-quicksand, $weight, $style, $filename);
+}

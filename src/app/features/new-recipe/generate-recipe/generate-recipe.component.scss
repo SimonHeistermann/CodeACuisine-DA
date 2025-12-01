@@ -1,0 +1,362 @@
+@use './../../../../styles/colors.scss' as *;
+@use './../../../../styles/fonts.scss' as fonts;
+@use './../../../../styles/mixins.scss' as mixins;
+
+:host {
+  display: block;
+}
+
+.generate-page {
+  background-color: $bg-color;
+  min-height: 100vh;
+}
+
+.generate-page__inner {
+  max-width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 80px;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  color: $primary-green;
+  font-family: fonts.$font-family-quicksand;
+}
+
+.generate-page__header {
+  height: 136px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.generate-page__logo {
+  height: 48px;
+  width: auto;
+}
+
+.generate {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.generate__intro {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.generate__title {
+  font-family: fonts.$font-family-quicksand;
+  font-size: 54px;
+  font-weight: 600;
+  line-height: 65px;
+  margin: 0 0 24px;
+  color: $middle-green;
+}
+
+.generate__subtitle {
+  font-size: 24px;
+  line-height: 100%;
+  margin: 0;
+  color: $dark-green;
+  letter-spacing: 0%;
+}
+
+.generate__cards {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+  margin-top: 48px;
+}
+
+.generate__card {
+  flex: 1;
+  background-color: $light-green;
+  border-radius: 20px;
+  padding: 24px;
+  color: $dark-green;
+}
+
+.generate__card--input {
+    min-height: 176px;
+
+    .generate__card-grid {
+      display: grid;
+      grid-template-columns: 2.5fr 1.2fr;
+      column-gap: 40px;
+      align-items: flex-start;
+    }
+}  
+
+.generate__field-group {
+  margin-bottom: 24px;
+}
+
+.generate__field-group--serving {
+  margin-bottom: 0;
+}
+
+.generate__field-label {
+  display: block;
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.generate__ingredient-input-wrapper {
+  position: relative;
+}
+
+.generate__ingredient-input {
+    width: 100%;
+    padding: 10px 24px;
+    height: 36px;
+    border-radius: 999px;
+    border: none;
+    background-color: $background-cream;
+    font-size: 16px;
+    font-family: fonts.$font-family-quicksand;
+    color: $dark-green;
+    outline: none;
+}
+
+.generate__ingredient-input::placeholder {
+  color: rgba($primary-green, 0.4);
+}
+
+.generate__suggestions {
+  position: absolute;
+  left: 24px;
+  top: 100%;
+  margin-top: 8px;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.generate__suggestion-item {
+  font-size: 20px;
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.generate__suggestion-item:hover {
+  text-decoration: underline;
+}
+
+.generate__serving-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.generate__pill-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.generate__pill-input {
+    border: none;
+    outline: none;
+    background-color: $primary-cream;
+    border-radius: 999px;
+    padding: 3px 15px;
+    height: 36px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: fonts.$font-family-quicksand;
+    color: $dark-green;
+}
+  
+.generate__pill-input--number {
+    width: 96px;
+    min-width: 61px;
+    text-align: center;
+    height: 36px;
+    border-radius: 48px;
+    font-size: 18px;
+    line-height: 100%;
+    letter-spacing: 0%;
+}
+  
+.generate__pill-input::-webkit-outer-spin-button,
+.generate__pill-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.generate__pill-input[type='number'] {
+    -moz-appearance: textfield;
+}
+  
+.generate__pill-dropdown {
+  position: relative;
+}
+
+.generate__pill-dropdown--inline {
+  display: inline-block;
+}
+
+.generate__pill-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 72px;
+  border-radius: 999px;
+  border: none;
+  background-color: $primary-cream;
+  padding: 0px 12px;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0%;
+  font-family: fonts.$font-family-quicksand;
+  font-weight: 500;
+  color: $dark-green;
+  cursor: pointer;
+  height: 36px;
+}
+
+.generate__pill-arrow {
+  width: 10px;
+  height: auto;
+}
+
+.generate__pill-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  width: 100%;
+  background-color: $light-cream;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+
+.generate__pill-dropdown-item {
+  width: 100%;
+  padding: 8px 16px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-family: fonts.$font-family-quicksand;
+  color: $dark-green;
+  cursor: pointer;
+}
+
+.generate__pill-dropdown-item:hover {
+  background-color: $light-green;
+}
+
+.generate__add-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+  
+    img {
+        display: block;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+  }
+  
+
+.generate__list-title {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 16px;
+}
+
+.generate__list-placeholder {
+  margin: 0;
+  font-size: 18px;
+  color: $grey;
+}
+
+.generate__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.generate__list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: 999px;
+  height: 30px;
+}
+
+.generate__list-item:hover {
+  background-color: $light-cream;
+}
+
+.generate__list-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.generate__list-bullet {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.generate__list-amount {
+  min-width: 80px;
+  font-size: 20px;
+}
+
+.generate__list-name {
+  font-size: 20px;
+}
+
+.generate__list-name-input {
+  border: none;
+  border-bottom: 2px solid $primary-green;
+  background: transparent;
+  font-size: 20px;
+  font-family: fonts.$font-family-quicksand;
+  color: $primary-green;
+  padding: 2px 0;
+  min-width: 160px;
+}
+
+.generate__list-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.generate__icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.generate__next-btn {
+  @include mixins.button($primary-green, $white);
+  align-self: flex-end;
+  margin-top: 32px;
+}

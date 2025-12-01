@@ -1,10 +1,42 @@
-<main class="bg-green-primary px-16">
-    <header class="max-w-[1440px] m-auto py-10">
-      <img src="img/logo_off_white.png" alt="logo">
+<main class="hero">
+  <div class="hero__inner">
+    <header class="hero__header">
+      <a [routerLink]="['/']">
+        <img src="img/logo_off_white.png" alt="logo" class="hero__logo" />
+      </a>
     </header>
-  
-    <div>
-      <h3>AI-Powered recipe generator</h3>
-      <h1>Code à Cuisine</h1>
-    </div>
+
+    <section class="hero__content">
+      <div class="hero__top">
+        <div class="hero__text">
+          <h3 class="hero__eyebrow">AI-Powered recipe generator</h3>
+          <h1 class="hero__title">Code à Cuisine</h1>
+        </div>
+        <a
+          [routerLink]="['/generate-recipe']"
+          class="hero__primary-btn"
+        >
+          Get started
+        </a>
+      </div>
+
+      <div class="hero__bottom-row">
+        <span class="hero__bottom-label">Hungry for inspiration?</span>
+        <a href="#" class="hero__bottom-link">
+          <span class="hero__bottom-link-text">Go to cookbook</span>
+          <img
+            class="hero__bottom-arrow"
+            src="img/arrow_off_white_right.png"
+            alt="arrow"
+          />
+        </a>
+      </div>
+
+      <img
+        class="hero__visuals"
+        src="img/hero_visuals.png"
+        alt="dishes"
+      />
+    </section>
+  </div>
 </main>

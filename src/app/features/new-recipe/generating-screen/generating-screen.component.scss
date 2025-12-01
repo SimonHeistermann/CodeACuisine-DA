@@ -1,0 +1,61 @@
+@use './../../../../styles/colors.scss' as *;
+@use './../../../../styles/fonts.scss' as fonts;
+
+:host {
+  display: block;
+}
+
+/* Vollflächiger grüner Hintergrund */
+.generating-page {
+  background-color: $hero-bg;   // = $primary-green
+  min-height: 100vh;
+}
+
+/* Gleiche Innenstruktur wie Generate / Preferences */
+.generating-page__inner {
+  max-width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 80px;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  color: $hero-text;            // = $primary-cream
+  font-family: fonts.$font-family-ubuntu;
+}
+
+/* Header: gleiche Höhe / Ausrichtung wie bei den anderen Screens */
+.generating-page__header {
+  height: 136px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.generating-page__logo {
+  height: 48px;
+  width: auto;
+}
+
+/* Zentrierter Loader + Text */
+.generating-page__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.generating-page__loader {
+  width: 200px;   // ungefähr h-80 aus Tailwind
+  max-width: 100%;
+  height: auto;
+}
+
+.generating-page__title {
+  font-size: 48px;   // text-5xl
+  font-weight: 700;
+  line-height: 1.2;
+}

@@ -1,0 +1,230 @@
+@if (isLoading) {
+  <app-generating-screen class="preferences__loading"></app-generating-screen>
+}
+
+<main class="preferences-page">
+  <div class="preferences-page__inner">
+    <header class="preferences-page__header">
+      <a [routerLink]="['/']">
+        <img
+          src="img/logo_green.png"
+          alt="Code à Cuisine logo"
+          class="preferences-page__logo"
+        />
+      </a>
+    </header>
+
+    <section class="preferences">
+      <!-- Back to Ingredients -->
+      <a
+        class="preferences__back-link"
+        [routerLink]="['/generate-recipe']"
+      >
+        <span class="preferences__back-icon-wrapper">
+          <img
+            src="img/arrow_green_left.png"
+            alt="back to ingredients"
+            class="preferences__back-icon"
+          />
+        </span>
+        <span class="preferences__back-text">Ingredients</span>
+      </a>
+
+      <div class="preferences__content">
+        <h1 class="preferences__title">Choose your preferences</h1>
+
+        <!-- Portions / Cooks -->
+        <div class="preferences__counts">
+          <div class="preferences__count-group">
+            <h3 class="preferences__count-label">
+              How many portions you need?
+            </h3>
+
+            <div class="preferences__counter">
+              <button
+                type="button"
+                class="preferences__counter-btn"
+                (click)="decreaseAmount('portionsAmount')"
+              >
+                <img
+                  src="img/minus.svg"
+                  alt="decrease portions"
+                  class="preferences__counter-icon"
+                />
+              </button>
+
+              <span class="preferences__counter-value">
+                {{ generateRecipeService.recipeRequirements.portionsAmount }}
+              </span>
+
+              <span class="preferences__counter-unit">Portions</span>
+
+              <button
+                type="button"
+                class="preferences__counter-btn"
+                (click)="increaseAmount('portionsAmount')"
+              >
+                <img
+                  src="img/plus.svg"
+                  alt="increase portions"
+                  class="preferences__counter-icon"
+                />
+              </button>
+            </div>
+          </div>
+
+          <div class="preferences__count-group">
+            <h3 class="preferences__count-label">
+              How many are cooking?
+            </h3>
+
+            <div class="preferences__counter">
+              <button
+                type="button"
+                class="preferences__counter-btn"
+                (click)="decreaseAmount('cooksAmount')"
+              >
+                <img
+                  src="img/minus.svg"
+                  alt="decrease cooks"
+                  class="preferences__counter-icon"
+                />
+              </button>
+
+              <span class="preferences__counter-value">
+                {{ generateRecipeService.recipeRequirements.cooksAmount }}
+              </span>
+
+              <span class="preferences__counter-unit">Person</span>
+
+              <button
+                type="button"
+                class="preferences__counter-btn"
+                (click)="increaseAmount('cooksAmount')"
+              >
+                <img
+                  src="img/plus.svg"
+                  alt="increase cooks"
+                  class="preferences__counter-icon"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card mit Cooking time / Cuisine / Diet -->
+        <div class="preferences__card">
+          <!-- Cooking time -->
+          <div class="preferences__section">
+            <div class="preferences__section-header">
+              <img
+                src="img/clock_green.png"
+                alt="clock"
+                class="preferences__section-icon"
+              />
+              <h3 class="preferences__section-title">
+                Cooking time:
+              </h3>
+            </div>
+
+            <div class="preferences__time-row">
+              @for (time of preferences.times; track time.value) {
+                <button
+                  type="button"
+                  class="preferences__time-option"
+                  [ngClass]="{
+                    'preferences__time-option--active':
+                      generateRecipeService.recipeRequirements.cookingTime === time.value
+                  }"
+                  (click)="selectPreference('cookingTime', time.value)"
+                >
+                  <span class="preferences__chip">
+                    <span class="preferences__chip-label">
+                      {{ time.label }}
+                    </span>
+                  </span>
+
+                  <span class="preferences__time-sub">
+                    {{ time.description }}
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Cuisine -->
+          <div class="preferences__section">
+            <div class="preferences__section-header">
+              <img
+                src="img/world_green.png"
+                alt="cuisine"
+                class="preferences__section-icon"
+              />
+              <h3 class="preferences__section-title">
+                Cuisine
+              </h3>
+            </div>
+
+            <div class="preferences__chip-row">
+              @for (cuisine of preferences.cuisine; track cuisine) {
+                <button
+                  type="button"
+                  class="preferences__chip"
+                  [ngClass]="{
+                    'preferences__chip--active':
+                      generateRecipeService.recipeRequirements.cuisine === cuisine
+                  }"
+                  (click)="selectPreference('cuisine', cuisine)"
+                >
+                  <span class="preferences__chip-label">
+                    {{ cuisine | titlecase }}
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Diet preferences -->
+          <div class="preferences__section">
+            <div class="preferences__section-header">
+              <img
+                src="img/fork_spoon_green.png"
+                alt="diet preferences"
+                class="preferences__section-icon"
+              />
+              <h3 class="preferences__section-title">
+                Diet preferences
+              </h3>
+            </div>
+
+            <div class="preferences__chip-row">
+              @for (diet of preferences.dietPreferences; track diet) {
+                <button
+                  type="button"
+                  class="preferences__chip"
+                  [ngClass]="{
+                    'preferences__chip--active':
+                      generateRecipeService.recipeRequirements.dietPreferences === diet
+                  }"
+                  (click)="selectPreference('dietPreferences', diet)"
+                >
+                  <span class="preferences__chip-label">
+                    {{ diet | titlecase }}
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="preferences__submit-btn"
+          (click)="onGenerateRecipe()"
+        >
+          Generate a recipe
+        </button>
+      </div>
+    </section>
+  </div>
+</main>

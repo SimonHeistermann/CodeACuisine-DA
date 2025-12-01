@@ -1,0 +1,238 @@
+<main class="generate-page">
+  <div class="generate-page__inner">
+    <header class="generate-page__header">
+      <a [routerLink]="['/']">
+        <img
+          src="img/logo_green.png"
+          alt="Code à Cuisine logo"
+          class="generate-page__logo"
+        />
+      </a>
+    </header>
+
+    <section class="generate">
+      <div class="generate__intro">
+        <h1 class="generate__title">Generate recipe</h1>
+        <p class="generate__subtitle">
+          Got random stuff in your kitchen? Pop it in–we've got the perfect recipe
+          waiting.
+        </p>
+      </div>
+
+      <div class="generate__cards">
+        <form
+          class="generate__card generate__card--input"
+          #ingredientForm="ngForm"
+          (ngSubmit)="onSubmit(ingredientForm)"
+          novalidate
+        >
+          <div class="generate__card-grid">
+            <div class="generate__field-group">
+              <label class="generate__field-label" for="ingredient">
+                Ingredient
+              </label>
+
+              <div class="generate__ingredient-input-wrapper">
+                <input
+                  id="ingredient"
+                  name="ingredient"
+                  type="text"
+                  class="generate__ingredient-input"
+                  [(ngModel)]="ingredientName"
+                  (input)="onIngredientInputChange()"
+                  autocomplete="off"
+                />
+
+                @if (ingredientSuggestions.length > 0) {
+                  <ul class="generate__suggestions">
+                    @for (suggestion of ingredientSuggestions; track suggestion) {
+                      <li
+                        class="generate__suggestion-item"
+                        (click)="applySuggestion(suggestion)"
+                      >
+                        {{ suggestion }}
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+
+            <div class="generate__field-group generate__field-group--serving">
+              <label class="generate__field-label" for="servingSize">
+                Serving size
+              </label>
+
+              <div class="generate__serving-row">
+                <input
+                  id="servingSize"
+                  name="servingSize"
+                  type="number"
+                  min="1"
+                  max="10000"
+                  class="generate__pill-input generate__pill-input--number"
+                  [(ngModel)]="servingSize"
+                />
+
+                <div
+                  class="generate__pill-dropdown"
+                  (click)="toggleDropdown($event)"
+                >
+                  <button
+                    type="button"
+                    class="generate__pill-button"
+                  >
+                    <span>{{ selectedUnit.name }}</span>
+                    <img
+                      class="generate__pill-arrow"
+                      src="img/arrow_drop_down_green.png"
+                      alt="open unit dropdown"
+                    />
+                  </button>
+
+                  @if (isDropdownOpen) {
+                    <div class="generate__pill-dropdown-menu">
+                      @for (unit of unitsOfMeasurement; track unit.name) {
+                        <button
+                          type="button"
+                          class="generate__pill-dropdown-item"
+                          (click)="selectUnit(unit, $event)"
+                        >
+                          {{ unit.name }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <button type="submit" class="generate__add-btn">
+                  <img src="img/add_green.png" alt="add ingredient" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <section class="generate__card generate__card--list">
+          <h3 class="generate__list-title">List of your ingredients</h3>
+
+          @if (generateRecipeService.recipeRequirements.ingredients.length === 0) {
+            <p class="generate__list-placeholder">
+              Start by adding ingredients on the left.
+            </p>
+          } @else {
+            <ul class="generate__list">
+              @for (ingredient of generateRecipeService.recipeRequirements.ingredients; track $index) {
+                <li
+                  class="generate__list-item"
+                  (dblclick)="toggleEditModeForIngredient(ingredient)"
+                >
+                  <div class="generate__list-main">
+                    <span class="generate__list-bullet">•</span>
+
+                    @if (!ingredient.isEditMode) {
+                      <span class="generate__list-amount">
+                        {{ ingredient.servingSize
+                        }}{{ ingredient.unit.abbreviation }}
+                      </span>
+                      <span class="generate__list-name">
+                        {{ ingredient.ingredient }}
+                      </span>
+                    } @else {
+                      <div class="generate__pill-input-group">
+                        <input
+                          type="number"
+                          min="1"
+                          class="generate__pill-input generate__pill-input--number"
+                          [(ngModel)]="ingredient.servingSize"
+                          name="editServingSize-{{ $index }}"
+                          (keyup.enter)="onEditEnter(ingredient, $event)"
+                        />
+
+                        <div
+                          class="generate__pill-dropdown generate__pill-dropdown--inline"
+                          (click)="toggleIngredientUnitDropdown(ingredient, $event)"
+                        >
+                          <button
+                            type="button"
+                            class="generate__pill-button"
+                          >
+                            <span>{{ ingredient.unit.name }}</span>
+                            <img
+                              class="generate__pill-arrow"
+                              src="img/arrow_drop_down_green.png"
+                              alt="open unit dropdown"
+                            />
+                          </button>
+
+                          @if (ingredient.isUnitDropdownOpen) {
+                            <div class="generate__pill-dropdown-menu">
+                              @for (unit of unitsOfMeasurement; track unit.name) {
+                                <button
+                                  type="button"
+                                  class="generate__pill-dropdown-item"
+                                  (click)="selectUnitForIngredient(ingredient, unit, $event)"
+                                >
+                                  {{ unit.name }}
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+
+                      <input
+                        type="text"
+                        class="generate__list-name-input"
+                        [(ngModel)]="ingredient.ingredient"
+                        name="editIngredientName-{{ $index }}"
+                        (keyup.enter)="onEditEnter(ingredient, $event)"
+                      />
+                    }
+                  </div>
+
+                  <div class="generate__list-actions">
+                    <button
+                      type="button"
+                      class="generate__icon-btn"
+                      (click)="toggleEditModeForIngredient(ingredient)"
+                    >
+                      <img
+                        [src]="
+                          ingredient.isEditMode
+                            ? 'img/check_green.png'
+                            : 'img/edit_green.png'
+                        "
+                        alt="edit ingredient"
+                      />
+                    </button>
+
+                    <button
+                      type="button"
+                      class="generate__icon-btn"
+                      (click)="deleteIngredient(ingredient)"
+                    >
+                      <img
+                        src="img/delete_green.png"
+                        alt="delete ingredient"
+                      />
+                    </button>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+
+      @if (generateRecipeService.recipeRequirements.ingredients.length > 0) {
+        <a
+          class="generate__next-btn"
+          [routerLink]="['/preferences']"
+        >
+          Next step
+        </a>
+      }
+    </section>
+  </div>
+</main>

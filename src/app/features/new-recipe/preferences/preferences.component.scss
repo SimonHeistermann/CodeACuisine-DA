@@ -1,0 +1,312 @@
+@use './../../../../styles/colors.scss' as *;
+@use './../../../../styles/fonts.scss' as fonts;
+@use './../../../../styles/mixins.scss' as mixins;
+
+:host {
+  display: block;
+}
+
+/* Seite allgemein */
+.preferences-page {
+  background-color: $bg-color;
+  min-height: 100vh;
+}
+
+.preferences-page__inner {
+  max-width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 80px;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  color: $primary-green;
+  font-family: fonts.$font-family-quicksand;
+}
+
+/* Header mit Logo */
+.preferences-page__header {
+  height: 136px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.preferences-page__logo {
+  height: 48px;
+  width: auto;
+}
+
+/* Hauptbereich */
+.preferences {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Back-Link zu Ingredients */
+.preferences__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: $primary-green;
+  text-decoration: none;
+  margin-top: 4px;
+  margin-bottom: 32px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.preferences__back-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preferences__back-icon {
+  width: 16px;
+  height: auto;
+}
+
+.preferences__back-text {
+  font-size: 16px;
+}
+
+/* Zentrierter Content */
+.preferences__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Titel */
+.preferences__title {
+  font-family: fonts.$font-family-quicksand;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 120%;
+  margin-bottom: 32px;
+  color: $middle-green;
+}
+
+/* Anzahl-Bereiche */
+.preferences__counts {
+  display: flex;
+  gap: 128px;
+  margin-bottom: 40px;
+}
+
+.preferences__count-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.preferences__count-label {
+  font-size: 18px;
+  font-weight: 500;
+  color: $dark-green;
+}
+
+.preferences__counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* Plus / Minus Buttons – eckig, kein Fancy Hover */
+.preferences__counter-btn {
+  background: transparent;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.preferences__counter-icon {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+/* Zahl – fester Block, eckig, grüner Hintergrund */
+.preferences__counter-value {
+  min-width: 48px; /* reicht für bis zu 3-stellig */
+  padding: 0px 12px;
+  text-align: center;
+  background-color: $light-green;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: $dark-green;
+}
+
+.preferences__counter-unit {
+  font-size: 16px;
+  color: $dark-green;
+}
+
+/* Card */
+.preferences__card {
+  background-color: $light-green;
+  border-radius: 20px;
+  padding: 24px 32px;
+  width: 100%;
+  max-width: 960px;
+  color: $dark-green;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Sektionen (Cooking time, Cuisine, Diet) */
+.preferences__section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.preferences__section-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.preferences__section-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.preferences__section-title {
+  font-size: 24px;
+  font-weight: 500;
+  font: fonts.$font-family-quicksand;
+  color: $dark-green;
+}
+
+/* Cooking time – Optionen in Reihe */
+.preferences__time-row {
+  display: flex;
+  gap: 20px;
+}
+
+/* Button als Wrapper, Text darunter */
+.preferences__time-option {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* Beschreibung UNTER dem Chip, nicht im Chip */
+.preferences__time-sub {
+  font-size: 14px;
+  font-weight: 400;
+  color: $dark-green;
+}
+
+/* Basis-Chip (Quick / Medium / Complex, Cuisine, Diet) */
+.preferences__chip {
+  background-color: $primary-cream;
+  border-radius: 30px;
+  padding: 4px 28px;
+    height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: fonts.$font-family-quicksand;
+  color: $primary-green;
+  border: none;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* Label im Chip */
+.preferences__chip-label {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* Reihen für Cuisine / Diet */
+.preferences__chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Active-State – einfach nur andere Hintergrundfarbe, KEIN Shadow, kein Lift */
+.preferences__chip--active,
+.preferences__time-option--active .preferences__chip {
+  background-color: $light-green;
+}
+
+/* dezentes Hover, ohne Shadow */
+.preferences__chip:not(.preferences__chip--active):hover {
+  background-color: $light-cream;
+}
+
+/* Button "Generate a recipe" */
+.preferences__submit-btn {
+  margin-top: 40px;
+  @include mixins.button($primary-green, $white);
+}
+
+/* Loading-Overlay */
+.preferences__loading {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 100;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .preferences-page__inner {
+    padding: 24px 32px;
+  }
+
+  .preferences__counts {
+    gap: 40px;
+  }
+
+  .preferences__card {
+    padding: 32px 24px;
+  }
+
+  .preferences__time-row {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .preferences-page__inner {
+    padding: 24px 16px;
+  }
+
+  .preferences__counts {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .preferences__card {
+    padding: 24px 16px;
+  }
+
+  .preferences__time-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
