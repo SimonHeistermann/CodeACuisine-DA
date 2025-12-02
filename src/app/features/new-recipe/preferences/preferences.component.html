@@ -13,9 +13,7 @@
         />
       </a>
     </header>
-
     <section class="preferences">
-      <!-- Back to Ingredients -->
       <a
         class="preferences__back-link"
         [routerLink]="['/generate-recipe']"
@@ -29,17 +27,13 @@
         </span>
         <span class="preferences__back-text">Ingredients</span>
       </a>
-
       <div class="preferences__content">
         <h1 class="preferences__title">Choose your preferences</h1>
-
-        <!-- Portions / Cooks -->
         <div class="preferences__counts">
           <div class="preferences__count-group">
             <h3 class="preferences__count-label">
               How many portions you need?
             </h3>
-
             <div class="preferences__counter">
               <button
                 type="button"
@@ -52,7 +46,6 @@
                   class="preferences__counter-icon"
                 />
               </button>
-
               <span class="preferences__counter-value">
                 {{ generateRecipeService.recipeRequirements.portionsAmount }}
               </span>
@@ -72,12 +65,10 @@
               </button>
             </div>
           </div>
-
           <div class="preferences__count-group">
             <h3 class="preferences__count-label">
               How many are cooking?
             </h3>
-
             <div class="preferences__counter">
               <button
                 type="button"
@@ -90,13 +81,10 @@
                   class="preferences__counter-icon"
                 />
               </button>
-
               <span class="preferences__counter-value">
                 {{ generateRecipeService.recipeRequirements.cooksAmount }}
               </span>
-
               <span class="preferences__counter-unit">Person</span>
-
               <button
                 type="button"
                 class="preferences__counter-btn"
@@ -111,10 +99,7 @@
             </div>
           </div>
         </div>
-
-        <!-- Card mit Cooking time / Cuisine / Diet -->
         <div class="preferences__card">
-          <!-- Cooking time -->
           <div class="preferences__section">
             <div class="preferences__section-header">
               <img
@@ -151,8 +136,6 @@
               }
             </div>
           </div>
-
-          <!-- Cuisine -->
           <div class="preferences__section">
             <div class="preferences__section-header">
               <img
@@ -164,7 +147,6 @@
                 Cuisine
               </h3>
             </div>
-
             <div class="preferences__chip-row">
               @for (cuisine of preferences.cuisine; track cuisine) {
                 <button
@@ -183,8 +165,6 @@
               }
             </div>
           </div>
-
-          <!-- Diet preferences -->
           <div class="preferences__section">
             <div class="preferences__section-header">
               <img
@@ -196,7 +176,6 @@
                 Diet preferences
               </h3>
             </div>
-
             <div class="preferences__chip-row">
               @for (diet of preferences.dietPreferences; track diet) {
                 <button
@@ -216,10 +195,11 @@
             </div>
           </div>
         </div>
-
         <button
           type="button"
           class="preferences__submit-btn"
+          [disabled]="!canGenerateRecipe"
+          [ngClass]="{ 'preferences__submit-btn--disabled': !canGenerateRecipe }"
           (click)="onGenerateRecipe()"
         >
           Generate a recipe

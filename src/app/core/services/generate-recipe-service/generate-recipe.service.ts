@@ -1,7 +1,6 @@
-// src/app/core/services/generate-recipe-service/generate-recipe.service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
 import {
   RecipeRequirements,
   GeneratedRecipe,
@@ -27,8 +26,14 @@ export class GenerateRecipeService {
 
   constructor(private http: HttpClient) {}
 
-  generateRecipe() {
+  generateRecipe(): Observable<GeneratedRecipe[]> {
     console.log('Sending to n8n:', this.recipeRequirements);
-    return this.http.post<GeneratedRecipe[]>(webhookUrl, this.recipeRequirements);
+    return this.http
+      .post<GeneratedRecipe[]>(webhookUrl, this.recipeRequirements)
+      .pipe(
+        tap((recipes) => {
+          this.generatedRecipes = recipes;
+        })
+      );
   }
 }

@@ -1,0 +1,241 @@
+@use './../../../../styles/colors.scss' as *;
+@use './../../../../styles/fonts.scss' as fonts;
+@use './../../../../styles/mixins.scss' as mixins;
+
+:host {
+  display: block;
+}
+
+.results-page {
+  background-color: $primary-green;
+  min-height: 100vh;
+}
+
+.results-page__inner {
+  max-width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 80px;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  color: $primary-cream;
+  font-family: fonts.$font-family-quicksand;
+}
+
+.results-page__header {
+  height: 136px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.results-page__logo {
+  height: 48px;
+  width: auto;
+}
+
+.results {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+
+.results__hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 96px;
+}
+
+.results__hero-text {
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+
+.results__title {
+  font-family: fonts.$font-family-quicksand;
+  font-size: 54px;
+  font-weight: 600;
+  line-height: 65px;
+  letter-spacing: 0%;
+}
+
+.results__subtitle {
+  font-size: 24px;
+  line-height: 100%;
+  letter-spacing: 0%;
+}
+
+.results__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.results__tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $primary-cream;
+  color: $primary-green;
+  border-radius: 30px;
+  padding: 4px 18px;
+  font-size: 18px;
+  font-weight: 500;
+  height: 32px;
+}
+
+.results__hero-image-wrapper {
+  flex-shrink: 0;
+  width: 574px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 222px;
+}
+
+.results__hero-image {
+  width: 100%;
+  border-radius: 24px;
+  object-fit: cover;
+}
+
+.results__list {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.results__card {
+  flex: 1;
+  background-color: $card-bg;
+  border-radius: 20px;
+  padding: 32px 24px;
+  color: $dark-green;
+  display: flex;
+  flex-direction: column;
+  min-height: 338px;
+}
+
+.results__card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 24px;
+  color: $middle-green;
+}
+
+.results__card-icon {
+  width: 40px;
+  height: 28px;
+  object-fit: cover;
+}
+
+.results__card-label {
+    font-weight: 600;
+}
+
+.results__card-title {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 100%;
+  margin: 16px 0 16px;
+  letter-spacing: 0%;
+  color: $dark-green;
+}
+
+.results__card-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 20px;
+  line-height: 20px;
+  letter-spacing: 0%;
+  font-weight: 500;
+}
+
+.results__card-meta-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.results__card-meta-text {
+  color: $primary-green;
+}
+
+.results__view-btn {
+  margin-top: 48px;
+  height: 60px;
+  padding: 16px 26px;
+  border-radius: 0px;
+  background-color: $primary-cream;
+  color: $text-green;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 100%;
+  letter-spacing: 0%;
+  text-align: center;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+
+  &:hover {
+    background-color: $dark-cream;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(46, 46, 46, 0.16);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+}
+
+.results__empty {
+  margin-top: 40px;
+  font-size: 18px;
+}
+
+.results__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.results__generate-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  color: $primary-cream;
+  text-decoration: none;
+  padding: 16px 26px;
+  height: 52px;
+  transition: background-color 180ms ease;
+
+  &:hover {
+    background-color: #FAE0C633;
+  }
+}
+
+.results__back-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.results__back-icon {
+  width: 24px;
+  height: auto;
+}
+
+.results__back-text {
+  font-size: 16px;
+}

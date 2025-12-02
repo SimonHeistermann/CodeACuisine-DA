@@ -2,24 +2,26 @@ export interface UnitOfMeasurement {
     name: string;
     abbreviation: string;
 }
-
-export interface Ingredient {
+  
+export interface RecipeIngredient {
     servingSize: number;
     unit: UnitOfMeasurement;
     ingredient: string;
+}
+  
+export interface UiIngredient extends RecipeIngredient {
     isEditMode?: boolean;
     isUnitDropdownOpen?: boolean;
 }
   
 export interface RecipeRequirements {
-    ingredients: Ingredient[];
+    ingredients: UiIngredient[];
     portionsAmount: number;
     cooksAmount: number;
     cookingTime: string;
     cuisine: string;
     dietPreferences: string;
 }
-
   
 export interface NutritionalInformation {
     calories: number;
@@ -48,8 +50,8 @@ export interface GeneratedRecipe {
     preferences: RecipePreferences;
     cooksAmount: number;
     ingredients: {
-      yourIngredients: Ingredient[];
-      extraIngredients: Ingredient[];
+      yourIngredients: RecipeIngredient[];
+      extraIngredients: RecipeIngredient[];
     };
     directions: RecipeStep[];
 }  

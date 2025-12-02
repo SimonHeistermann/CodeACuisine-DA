@@ -6,7 +6,6 @@
   display: block;
 }
 
-/* Seite allgemein */
 .preferences-page {
   background-color: $bg-color;
   min-height: 100vh;
@@ -24,7 +23,6 @@
   font-family: fonts.$font-family-quicksand;
 }
 
-/* Header mit Logo */
 .preferences-page__header {
   height: 136px;
   display: flex;
@@ -37,14 +35,12 @@
   width: auto;
 }
 
-/* Hauptbereich */
 .preferences {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* Back-Link zu Ingredients */
 .preferences__back-link {
   display: inline-flex;
   align-items: center;
@@ -75,14 +71,12 @@
   font-size: 16px;
 }
 
-/* Zentrierter Content */
 .preferences__content {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Titel */
 .preferences__title {
   font-family: fonts.$font-family-quicksand;
   font-size: 32px;
@@ -92,7 +86,6 @@
   color: $middle-green;
 }
 
-/* Anzahl-Bereiche */
 .preferences__counts {
   display: flex;
   gap: 128px;
@@ -118,7 +111,6 @@
   margin-top: 20px;
 }
 
-/* Plus / Minus Buttons – eckig, kein Fancy Hover */
 .preferences__counter-btn {
   background: transparent;
   padding: 0;
@@ -137,9 +129,8 @@
   display: block;
 }
 
-/* Zahl – fester Block, eckig, grüner Hintergrund */
 .preferences__counter-value {
-  min-width: 48px; /* reicht für bis zu 3-stellig */
+  min-width: 48px; 
   padding: 0px 12px;
   text-align: center;
   background-color: $light-green;
@@ -154,7 +145,6 @@
   color: $dark-green;
 }
 
-/* Card */
 .preferences__card {
   background-color: $light-green;
   border-radius: 20px;
@@ -167,7 +157,6 @@
   gap: 40px;
 }
 
-/* Sektionen (Cooking time, Cuisine, Diet) */
 .preferences__section {
   display: flex;
   flex-direction: column;
@@ -192,13 +181,11 @@
   color: $dark-green;
 }
 
-/* Cooking time – Optionen in Reihe */
 .preferences__time-row {
   display: flex;
   gap: 20px;
 }
 
-/* Button als Wrapper, Text darunter */
 .preferences__time-option {
   border: none;
   background: transparent;
@@ -210,19 +197,17 @@
   cursor: pointer;
 }
 
-/* Beschreibung UNTER dem Chip, nicht im Chip */
 .preferences__time-sub {
   font-size: 14px;
   font-weight: 400;
   color: $dark-green;
 }
 
-/* Basis-Chip (Quick / Medium / Complex, Cuisine, Diet) */
 .preferences__chip {
   background-color: $primary-cream;
   border-radius: 30px;
   padding: 4px 28px;
-    height: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -233,37 +218,49 @@
   font-weight: 500;
 }
 
-/* Label im Chip */
 .preferences__chip-label {
   font-size: 20px;
   font-weight: 500;
 }
 
-/* Reihen für Cuisine / Diet */
 .preferences__chip-row {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
 }
 
-/* Active-State – einfach nur andere Hintergrundfarbe, KEIN Shadow, kein Lift */
 .preferences__chip--active,
 .preferences__time-option--active .preferences__chip {
   background-color: $light-green;
 }
 
-/* dezentes Hover, ohne Shadow */
 .preferences__chip:not(.preferences__chip--active):hover {
   background-color: $light-cream;
 }
 
-/* Button "Generate a recipe" */
 .preferences__submit-btn {
   margin-top: 40px;
   @include mixins.button($primary-green, $white);
+
+  &--disabled {
+    background-color: $light-green;
+    color: rgba($white, 0.8);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+
+    &:hover {
+      background-color: $light-green;
+      box-shadow: none;
+      transform: none;
+    }
+  }
 }
 
-/* Loading-Overlay */
+.preferences__submit-btn:disabled {
+  cursor: not-allowed;
+}
+
 .preferences__loading {
   position: fixed;
   inset: 0;
@@ -272,7 +269,6 @@
   z-index: 100;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .preferences-page__inner {
     padding: 24px 32px;

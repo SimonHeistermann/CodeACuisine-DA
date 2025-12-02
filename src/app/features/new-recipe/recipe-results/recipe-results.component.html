@@ -1,0 +1,116 @@
+<main class="results-page">
+    <div class="results-page__inner">
+      <header class="results-page__header">
+        <a [routerLink]="['/']">
+          <img
+            src="img/logo_off_white.png"
+            alt="Code à Cuisine logo"
+            class="results-page__logo"
+          />
+        </a>
+      </header>
+  
+      <section class="results">
+        <div class="results__hero">
+          <div class="results__hero-text">
+            <h1 class="results__title">The recipe results</h1>
+  
+            <p class="results__subtitle">
+              We took what you have and let our AI do the thinking.
+              <br />
+              Here are 3 easy recipes you can make right now!
+            </p>
+  
+            <div class="results__tags">
+              @if (requirements.cuisine) {
+                <span class="results__tag">
+                  {{ requirements.cuisine | titlecase }}
+                </span>
+              }
+  
+              @if (requirements.cookingTime) {
+                <span class="results__tag">
+                  {{ requirements.cookingTime | titlecase }}
+                </span>
+              }
+  
+              @if (hasDietPreference) {
+                <span class="results__tag">
+                  {{ requirements.dietPreferences | titlecase }}
+                </span>
+              }
+            </div>
+          </div>
+  
+          <div class="results__hero-image-wrapper">
+            <img
+              src="img/recipe_done.png"
+              alt="recipe done"
+              class="results__hero-image"
+            />
+          </div>
+        </div>
+  
+        @if (recipes.length > 0) {
+          <div class="results__list">
+            @for (recipe of recipes; track $index) {
+              <article class="results__card">
+                <header class="results__card-header">
+                  <img
+                    src="img/bell_green.png"
+                    alt="meal icon"
+                    class="results__card-icon"
+                  />
+                  <span class="results__card-label">
+                    Recipe {{ $index + 1 }}
+                  </span>
+                </header>
+  
+                <h2 class="results__card-title">
+                  {{ recipe.title }}
+                </h2>
+  
+                <div class="results__card-meta">
+                  <img
+                    src="img/clock_green.png"
+                    alt="cooking time icon"
+                    class="results__card-meta-icon"
+                  />
+                  <span class="results__card-meta-text">
+                    Cooking time: {{ recipe.cookingTime }}
+                  </span>
+                </div>
+  
+                <a
+                  class="results__view-btn"
+                  [routerLink]="['/recipe-detail', $index]"
+                >
+                  View
+                </a>
+              </article>
+            }
+          </div>
+        } @else {
+          <p class="results__empty">
+            No recipes found. Please go back and generate new recipes first.
+          </p>
+        }
+  
+        <div class="results__footer">
+            <a
+            class="results__generate-new"
+            [routerLink]="['/generate-recipe']"
+          >
+            <span class="results__back-text">Generate new recipe</span>
+            <span class="results__back-icon-wrapper">
+              <img
+                src="img/arrow_off_white_right.png"
+                alt="to generate recipe"
+                class="results__back-icon"
+              />
+            </span>
+          </a>
+        </div>
+      </section>
+    </div>
+</main>  

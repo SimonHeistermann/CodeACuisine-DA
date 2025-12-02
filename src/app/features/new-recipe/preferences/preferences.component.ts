@@ -1,8 +1,10 @@
 import { TitleCasePipe, NgClass } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+
 import { GeneratingScreenComponent } from '../generating-screen/generating-screen.component';
 import { GenerateRecipeService } from '../../../core/services/generate-recipe-service/generate-recipe.service';
+import { ToastService } from './../../../core/services/toast-service/toast.service';
 
 @Component({
   selector: 'app-preferences',
@@ -29,42 +31,31 @@ export class PreferencesComponent {
 
   constructor(
     public generateRecipeService: GenerateRecipeService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService,
   ) {}
 
-  onGenerateRecipe() {
-    const requirements = this.generateRecipeService.recipeRequirements;
-
-    if (
-      requirements.cookingTime &&
-      requirements.cuisine &&
-      requirements.dietPreferences
-    ) {
-      this.isLoading = true;
-
-      this.generateRecipeService.generateRecipe().subscribe({
-        next: (recipes) => {
-          this.generateRecipeService.generatedRecipes = recipes;
-          this.isLoading = false;
-          this.router.navigate(['/recipe-result']);
-        },
-        error: (error) => {
-          console.error('Error generating recipe:', error);
-          this.isLoading = false;
-          // später: Error-Toast / Meldung einbauen
-        },
-      });
-    }
+  get canGenerateRecipe(): boolean {
+    return this.hasAllPreferences();
   }
 
-  increaseAmount(key: 'portionsAmount' | 'cooksAmount') {
+  onGenerateRecipe(): void {
+    if (this.hasNoIngredients()) {
+      this.navigateToIngredientsWithToast();
+      return;
+    }
+    if (!this.hasAllPreferences()) return;
+    this.startRecipeGeneration();
+  }
+
+  increaseAmount(key: 'portionsAmount' | 'cooksAmount'): void {
     const current = this.generateRecipeService.recipeRequirements[key];
     if (current < this.MAX_COUNT) {
       this.generateRecipeService.recipeRequirements[key] = current + 1;
     }
   }
 
-  decreaseAmount(key: 'portionsAmount' | 'cooksAmount') {
+  decreaseAmount(key: 'portionsAmount' | 'cooksAmount'): void {
     const current = this.generateRecipeService.recipeRequirements[key];
     if (current > this.MIN_COUNT) {
       this.generateRecipeService.recipeRequirements[key] = current - 1;
@@ -73,8 +64,62 @@ export class PreferencesComponent {
 
   selectPreference(
     key: 'cookingTime' | 'cuisine' | 'dietPreferences',
-    value: string
-  ) {
+    value: string,
+  ): void {
     this.generateRecipeService.recipeRequirements[key] = value;
+  }
+
+  private hasNoIngredients(): boolean {
+    return (
+      this.generateRecipeService.recipeRequirements.ingredients.length === 0
+    );
+  }
+
+  private hasAllPreferences(): boolean {
+    const req = this.generateRecipeService.recipeRequirements;
+    return !!(req.cookingTime && req.cuisine && req.dietPreferences);
+  }
+
+  private startRecipeGeneration(): void {
+    this.isLoading = true;
+
+    this.generateRecipeService.generateRecipe().subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/recipe-results']);
+      },
+      error: (error) => {
+        this.handleGenerationError(error);
+      },
+    });
+  }
+
+  private handleGenerationError(error: unknown): void {
+    console.error('Error generating recipe:', error);
+    this.isLoading = false;
+
+    this.router.navigate(['/generate-recipe']).then(() => {
+      this.toastService.show({
+        title: 'Something went wrong',
+        message:
+          'We couldn’t generate your recipes right now. Please try again in a moment.',
+        durationMs: 5000,
+      });
+    });
+  }
+
+  private navigateToIngredientsWithToast(): void {
+    this.router.navigate(['/generate-recipe']).then(() => {
+      this.showMissingIngredientsToast();
+    });
+  }
+
+  private showMissingIngredientsToast(): void {
+    this.toastService.show({
+      title: 'Ups! Not quite enough…',
+      message:
+        'Please add at least one ingredient before generating your recipes.',
+      durationMs: 4000,
+    });
   }
 }

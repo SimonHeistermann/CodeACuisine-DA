@@ -1,0 +1,22 @@
+@if (toast$ | async; as toast) {
+    <div class="toast-overlay" (click)="onBackdropClick()">
+      <div class="toast-card" (click)="onCardClick($event)">
+        <button
+          type="button"
+          class="toast-card__close"
+          (click)="onCloseClick($event)"
+          aria-label="Close"
+        >
+          ×
+        </button>
+  
+        <h2 class="toast-card__title">
+          {{ toast.title }}
+        </h2>
+  
+        <p class="toast-card__message">
+          {{ toast.message }}
+        </p>
+      </div>
+    </div>
+}  

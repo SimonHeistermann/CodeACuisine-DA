@@ -1,14 +1,19 @@
 import { Component, ElementRef, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { GenerateRecipeService } from '../../../core/services/generate-recipe-service/generate-recipe.service';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Ingredient, UnitOfMeasurement } from '../../../core/models/recipe.model';
+
+import { GenerateRecipeService } from '../../../core/services/generate-recipe-service/generate-recipe.service';
+import {
+  UiIngredient,
+  UnitOfMeasurement,
+} from '../../../core/models/recipe.model';
+import { ToastOverlayComponent } from '../../../shared/toast-overlay/toast-overlay.component';
 
 @Component({
   selector: 'app-generate-recipe',
   standalone: true,
-  imports: [RouterModule, FormsModule, CommonModule],
+  imports: [RouterModule, FormsModule, CommonModule, ToastOverlayComponent],
   templateUrl: './generate-recipe.component.html',
   styleUrl: './generate-recipe.component.scss',
 })
@@ -39,7 +44,7 @@ export class GenerateRecipeComponent {
 
   constructor(
     public generateRecipeService: GenerateRecipeService,
-    private elementRef: ElementRef<HTMLElement>
+    private elementRef: ElementRef<HTMLElement>,
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -73,14 +78,13 @@ export class GenerateRecipeComponent {
 
   onSubmit(form: NgForm): void {
     const ingredient = this.buildIngredientFromForm();
-    if (!ingredient) {
-      return;
-    }
+    if (!ingredient) return;
+
     this.prependIngredient(ingredient);
     this.resetForm(form);
   }
 
-  toggleEditModeForIngredient(ingredient: Ingredient): void {
+  toggleEditModeForIngredient(ingredient: UiIngredient): void {
     if (!ingredient.isEditMode) {
       ingredient.isEditMode = true;
       return;
@@ -88,7 +92,7 @@ export class GenerateRecipeComponent {
     this.commitIngredientEdit(ingredient);
   }
 
-  onEditEnter(ingredient: Ingredient, event: Event): void {
+  onEditEnter(ingredient: UiIngredient, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
     if (ingredient.isEditMode) {
@@ -97,39 +101,40 @@ export class GenerateRecipeComponent {
   }
 
   toggleIngredientUnitDropdown(
-    ingredient: Ingredient,
-    event: MouseEvent
+    ingredient: UiIngredient,
+    event: MouseEvent,
   ): void {
     ingredient.isUnitDropdownOpen = !ingredient.isUnitDropdownOpen;
     event.stopPropagation();
   }
 
   selectUnitForIngredient(
-    ingredient: Ingredient,
+    ingredient: UiIngredient,
     unit: UnitOfMeasurement,
-    event: MouseEvent
+    event: MouseEvent,
   ): void {
     ingredient.unit = unit;
     ingredient.isUnitDropdownOpen = false;
     event.stopPropagation();
   }
 
-  deleteIngredient(ingredient: Ingredient): void {
+  deleteIngredient(ingredient: UiIngredient): void {
     const index = this.ingredients.indexOf(ingredient);
     if (index > -1) {
       this.ingredients.splice(index, 1);
     }
   }
 
-  private get ingredients(): Ingredient[] {
+  // ---- private helpers ----
+
+  private get ingredients(): UiIngredient[] {
     return this.generateRecipeService.recipeRequirements.ingredients;
   }
 
   private isClickInsideComponent(event: MouseEvent): boolean {
     const target = event.target as Node | null;
-    if (!target) {
-      return false;
-    }
+    if (!target) return false;
+
     return this.elementRef.nativeElement.contains(target);
   }
 
@@ -140,7 +145,7 @@ export class GenerateRecipeComponent {
 
   private closeIngredientDropdowns(): void {
     this.ingredients.forEach(
-      (ingredient) => (ingredient.isUnitDropdownOpen = false)
+      (ingredient) => (ingredient.isUnitDropdownOpen = false),
     );
   }
 
@@ -151,16 +156,15 @@ export class GenerateRecipeComponent {
 
   private filterIngredientSuggestions(query: string): string[] {
     return this.allIngredientSuggestions.filter((item) =>
-      item.toLowerCase().startsWith(query)
+      item.toLowerCase().startsWith(query),
     );
   }
 
-  private buildIngredientFromForm(): Ingredient | null {
+  private buildIngredientFromForm(): UiIngredient | null {
     const name = this.ingredientName.trim();
     const size = Number(this.servingSize);
-    if (this.isInvalidIngredient(name, size)) {
-      return null;
-    }
+    if (this.isInvalidIngredient(name, size)) return null;
+
     return {
       ingredient: name,
       servingSize: size,
@@ -170,7 +174,7 @@ export class GenerateRecipeComponent {
     };
   }
 
-  private prependIngredient(ingredient: Ingredient): void {
+  private prependIngredient(ingredient: UiIngredient): void {
     this.generateRecipeService.recipeRequirements.ingredients = [
       ingredient,
       ...this.ingredients,
@@ -187,7 +191,7 @@ export class GenerateRecipeComponent {
     });
   }
 
-  private commitIngredientEdit(ingredient: Ingredient): void {
+  private commitIngredientEdit(ingredient: UiIngredient): void {
     const name = ingredient.ingredient.trim();
     const size = Number(ingredient.servingSize);
     if (this.isInvalidIngredient(name, size)) {
