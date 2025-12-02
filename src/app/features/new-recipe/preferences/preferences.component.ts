@@ -1,6 +1,6 @@
 import { TitleCasePipe, NgClass } from '@angular/common';
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { GeneratingScreenComponent } from '../generating-screen/generating-screen.component';
 import { GenerateRecipeService } from '../../../core/services/generate-recipe-service/generate-recipe.service';
 
@@ -19,15 +19,18 @@ export class PreferencesComponent {
 
   preferences = {
     times: [
-      { value: 'Quick', label: 'Quick', description: 'up to 20min' },
-      { value: 'Medium', label: 'Medium', description: '25–40min' },
-      { value: 'Complex', label: 'Complex', description: 'over 45min' },
+      { value: 'quick', label: 'Quick', description: 'up to 20min' },
+      { value: 'medium', label: 'Medium', description: '25–40min' },
+      { value: 'complex', label: 'Complex', description: 'over 45min' },
     ],
     cuisine: ['german', 'italian', 'indian', 'japanese', 'gourmet', 'fusion'],
     dietPreferences: ['vegetarian', 'vegan', 'keto', 'no preferences'],
   };
 
-  constructor(public generateRecipeService: GenerateRecipeService) {}
+  constructor(
+    public generateRecipeService: GenerateRecipeService,
+    private router: Router
+  ) {}
 
   onGenerateRecipe() {
     const requirements = this.generateRecipeService.recipeRequirements;
@@ -37,14 +40,25 @@ export class PreferencesComponent {
       requirements.cuisine &&
       requirements.dietPreferences
     ) {
-      // hier später: Request an n8n-Service schicken
       this.isLoading = true;
+
+      this.generateRecipeService.generateRecipe().subscribe({
+        next: (recipes) => {
+          this.generateRecipeService.generatedRecipes = recipes;
+          this.isLoading = false;
+          this.router.navigate(['/recipe-result']);
+        },
+        error: (error) => {
+          console.error('Error generating recipe:', error);
+          this.isLoading = false;
+          // später: Error-Toast / Meldung einbauen
+        },
+      });
     }
   }
 
   increaseAmount(key: 'portionsAmount' | 'cooksAmount') {
     const current = this.generateRecipeService.recipeRequirements[key];
-
     if (current < this.MAX_COUNT) {
       this.generateRecipeService.recipeRequirements[key] = current + 1;
     }
@@ -52,7 +66,6 @@ export class PreferencesComponent {
 
   decreaseAmount(key: 'portionsAmount' | 'cooksAmount') {
     const current = this.generateRecipeService.recipeRequirements[key];
-
     if (current > this.MIN_COUNT) {
       this.generateRecipeService.recipeRequirements[key] = current - 1;
     }

@@ -13,19 +13,22 @@ import { Ingredient, UnitOfMeasurement } from '../../../core/models/recipe.model
   styleUrl: './generate-recipe.component.scss',
 })
 export class GenerateRecipeComponent {
-  unitsOfMeasurement: UnitOfMeasurement[] = [
+  readonly unitsOfMeasurement: UnitOfMeasurement[] = [
     { name: 'gram', abbreviation: 'g' },
     { name: 'ml', abbreviation: 'ml' },
     { name: 'piece', abbreviation: '' },
-  ];  
+  ];
+
+  readonly defaultServingSize = 100;
 
   isDropdownOpen = false;
   selectedUnit: UnitOfMeasurement = this.unitsOfMeasurement[0];
-  servingSize = 100;
+  servingSize = this.defaultServingSize;
 
   ingredientName = '';
   ingredientSuggestions: string[] = [];
-  private allIngredientSuggestions: string[] = [
+
+  private readonly allIngredientSuggestions: readonly string[] = [
     'Pasta',
     'Baby spinach',
     'Cherry tomatoes',
@@ -36,108 +39,67 @@ export class GenerateRecipeComponent {
 
   constructor(
     public generateRecipeService: GenerateRecipeService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef<HTMLElement>
   ) {}
 
   @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    if (!this.elementRef.nativeElement.contains(event.target)) {
-      this.isDropdownOpen = false;
-
-      this.generateRecipeService.recipeRequirements.ingredients.forEach(
-        (ingredient) => (ingredient.isUnitDropdownOpen = false)
-      );
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.isClickInsideComponent(event)) {
+      this.closeAllDropdowns();
     }
   }
 
-  toggleDropdown(event: MouseEvent) {
+  toggleDropdown(event: MouseEvent): void {
     this.isDropdownOpen = !this.isDropdownOpen;
     event.stopPropagation();
   }
 
-  selectUnit(unit: UnitOfMeasurement, event: MouseEvent) {
+  selectUnit(unit: UnitOfMeasurement, event: MouseEvent): void {
     this.selectedUnit = unit;
-    this.isDropdownOpen = false;
-    event.stopPropagation();
+    this.closeMainDropdown(event);
   }
 
-  onIngredientInputChange() {
+  onIngredientInputChange(): void {
     const query = this.ingredientName.trim().toLowerCase();
-    if (!query) {
-      this.ingredientSuggestions = [];
-      return;
-    }
-
-    this.ingredientSuggestions = this.allIngredientSuggestions.filter((item) =>
-      item.toLowerCase().startsWith(query)
-    );
+    this.ingredientSuggestions = query
+      ? this.filterIngredientSuggestions(query)
+      : [];
   }
 
-  applySuggestion(suggestion: string) {
+  applySuggestion(suggestion: string): void {
     this.ingredientName = suggestion;
     this.ingredientSuggestions = [];
   }
 
-  onSubmit(form: NgForm) {
-    const name = this.ingredientName.trim();
-    const size = Number(this.servingSize);
-  
-    if (!name || !size || Number.isNaN(size) || size <= 0) {
-      return; 
-    }
-  
-    const newIngredient: Ingredient = {
-      ingredient: name,
-      servingSize: size,
-      unit: this.selectedUnit,
-      isEditMode: false,
-      isUnitDropdownOpen: false,
-    };
-  
-    this.generateRecipeService.recipeRequirements.ingredients = [
-      newIngredient,
-      ...this.generateRecipeService.recipeRequirements.ingredients,
-    ];
-  
-    this.ingredientName = '';
-    this.servingSize = 100;
-    this.selectedUnit = this.unitsOfMeasurement[0];
-    this.ingredientSuggestions = [];
-  
-    form.resetForm({
-      servingSize: this.servingSize,
-    });
-  }  
-
-  toggleEditModeForIngredient(ingredient: Ingredient) {
-    if (ingredient.isEditMode) {
-      const name = ingredient.ingredient.trim();
-      const size = Number(ingredient.servingSize);
-  
-      if (!name || !size || Number.isNaN(size) || size <= 0) {
-        this.deleteIngredient(ingredient);
-        return;
-      }
-  
-      ingredient.servingSize = size;
-      ingredient.isUnitDropdownOpen = false;
-      ingredient.isEditMode = false;
+  onSubmit(form: NgForm): void {
+    const ingredient = this.buildIngredientFromForm();
+    if (!ingredient) {
       return;
     }
-  
-    ingredient.isEditMode = true;
+    this.prependIngredient(ingredient);
+    this.resetForm(form);
   }
 
-  onEditEnter(ingredient: Ingredient, event: Event) {
+  toggleEditModeForIngredient(ingredient: Ingredient): void {
+    if (!ingredient.isEditMode) {
+      ingredient.isEditMode = true;
+      return;
+    }
+    this.commitIngredientEdit(ingredient);
+  }
+
+  onEditEnter(ingredient: Ingredient, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
     if (ingredient.isEditMode) {
       this.toggleEditModeForIngredient(ingredient);
     }
   }
-  
 
-  toggleIngredientUnitDropdown(ingredient: Ingredient, event: MouseEvent) {
+  toggleIngredientUnitDropdown(
+    ingredient: Ingredient,
+    event: MouseEvent
+  ): void {
     ingredient.isUnitDropdownOpen = !ingredient.isUnitDropdownOpen;
     event.stopPropagation();
   }
@@ -146,22 +108,98 @@ export class GenerateRecipeComponent {
     ingredient: Ingredient,
     unit: UnitOfMeasurement,
     event: MouseEvent
-  ) {
+  ): void {
     ingredient.unit = unit;
     ingredient.isUnitDropdownOpen = false;
     event.stopPropagation();
   }
 
-  deleteIngredient(ingredient: Ingredient) {
-    const index =
-      this.generateRecipeService.recipeRequirements.ingredients.indexOf(
-        ingredient
-      );
+  deleteIngredient(ingredient: Ingredient): void {
+    const index = this.ingredients.indexOf(ingredient);
     if (index > -1) {
-      this.generateRecipeService.recipeRequirements.ingredients.splice(
-        index,
-        1
-      );
+      this.ingredients.splice(index, 1);
     }
+  }
+
+  private get ingredients(): Ingredient[] {
+    return this.generateRecipeService.recipeRequirements.ingredients;
+  }
+
+  private isClickInsideComponent(event: MouseEvent): boolean {
+    const target = event.target as Node | null;
+    if (!target) {
+      return false;
+    }
+    return this.elementRef.nativeElement.contains(target);
+  }
+
+  private closeAllDropdowns(): void {
+    this.isDropdownOpen = false;
+    this.closeIngredientDropdowns();
+  }
+
+  private closeIngredientDropdowns(): void {
+    this.ingredients.forEach(
+      (ingredient) => (ingredient.isUnitDropdownOpen = false)
+    );
+  }
+
+  private closeMainDropdown(event: MouseEvent): void {
+    this.isDropdownOpen = false;
+    event.stopPropagation();
+  }
+
+  private filterIngredientSuggestions(query: string): string[] {
+    return this.allIngredientSuggestions.filter((item) =>
+      item.toLowerCase().startsWith(query)
+    );
+  }
+
+  private buildIngredientFromForm(): Ingredient | null {
+    const name = this.ingredientName.trim();
+    const size = Number(this.servingSize);
+    if (this.isInvalidIngredient(name, size)) {
+      return null;
+    }
+    return {
+      ingredient: name,
+      servingSize: size,
+      unit: this.selectedUnit,
+      isEditMode: false,
+      isUnitDropdownOpen: false,
+    };
+  }
+
+  private prependIngredient(ingredient: Ingredient): void {
+    this.generateRecipeService.recipeRequirements.ingredients = [
+      ingredient,
+      ...this.ingredients,
+    ];
+  }
+
+  private resetForm(form: NgForm): void {
+    this.ingredientName = '';
+    this.servingSize = this.defaultServingSize;
+    this.selectedUnit = this.unitsOfMeasurement[0];
+    this.ingredientSuggestions = [];
+    form.resetForm({
+      servingSize: this.servingSize,
+    });
+  }
+
+  private commitIngredientEdit(ingredient: Ingredient): void {
+    const name = ingredient.ingredient.trim();
+    const size = Number(ingredient.servingSize);
+    if (this.isInvalidIngredient(name, size)) {
+      this.deleteIngredient(ingredient);
+      return;
+    }
+    ingredient.servingSize = size;
+    ingredient.isUnitDropdownOpen = false;
+    ingredient.isEditMode = false;
+  }
+
+  private isInvalidIngredient(name: string, size: number): boolean {
+    return !name || !size || Number.isNaN(size) || size <= 0;
   }
 }

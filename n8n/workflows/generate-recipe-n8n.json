@@ -1,0 +1,157 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-recipe",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        -96
+      ],
+      "id": "1e800dc9-88ca-405f-8208-e7c3f7fa3278",
+      "name": "Webhook",
+      "webhookId": "584d5e6b-0e54-4d64-9df6-5212b4d9c912"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\n\nif (!body.ingredients || !Array.isArray(body.ingredients) || body.ingredients.length === 0) {\n  throw new Error('No ingredients provided in request body.');\n}\n\nbody.ingredients = body.ingredients.map((ing) => {\n  const { isEditMode, isUnitDropdownOpen, ...rest } = ing;\n  return rest;\n});\n\nif (body.cookingTime) body.cookingTime = String(body.cookingTime).toLowerCase();\nif (body.cuisine) body.cuisine = String(body.cuisine).toLowerCase();\nif (body.dietPreferences) body.dietPreferences = String(body.dietPreferences).toLowerCase();\n\nif (typeof body.portionsAmount !== 'number' || body.portionsAmount <= 0) {\n  body.portionsAmount = 2;\n}\n\nif (typeof body.cooksAmount !== 'number' || body.cooksAmount <= 0) {\n  body.cooksAmount = 1;\n}\n\nreturn [{ json: body }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        -96
+      ],
+      "id": "87f895bf-9f3a-49c7-894f-2221e65d74e9",
+      "name": "Validate & Normalize Input"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are part of a workflow of an application that lets users enter the ingredients they have at home and select some preferences. Your task is to generate cooking recipes **strictly** in JSON format.\n\nYour task:\n- Receive all ingredients and preferences from the input JSON.\n- Generate **exactly three** recipes based on this data.\n- Recipes should primarily use the provided ingredients, but you may add extra ingredients to improve taste or structure.\n- Separate ingredients the user already has from additional ones you introduce.\n\nOutput format:\nReturn a JSON **array of exactly 3 recipe objects**. No prose, no explanations, only JSON.\n\nEach recipe object must contain these keys:\n- \"title\": string – the name of the recipe\n- \"cookingTime\": string – time to prepare this recipe (e.g. \"45 minutes\")\n- \"nutritionalInformation\": object with keys { \"calories\", \"proteins\", \"fats\", \"carbs\" } (numbers)\n- \"preferences\": object with the keys { \"cookingTime\", \"cuisine\", \"dietPreferences\" } matching the user input when available\n- \"cooksAmount\": number – amount of cooks (same as input)\n- \"ingredients\": object with two keys:\n   - \"yourIngredients\": array of ingredient objects\n   - \"extraIngredients\": array of ingredient objects you add\n  Each ingredient object must have keys { \"ingredient\", \"servingSize\", \"unit\" } where \"unit\" is an object like { \"name\", \"abbreviation\" }.\n- \"directions\": array of step objects, each with keys:\n   - \"order\": number (1-based)\n   - \"title\": short string title of the step\n   - \"description\": detailed string description of the step\n   - \"cook\": number indicating which cook (1..cooksAmount) should do this step\n\nIMPORTANT RULES:\n- Return **valid JSON only**. No markdown, no comments, no trailing commas.\n- Return **exactly three** recipes in one top-level JSON array.\n- Do not include any additional fields or text outside this structure.\n\nUser data (already validated and normalized):\n\n{{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        -96
+      ],
+      "id": "3747ed31-e247-4d07-a736-5adab0fad7a7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.output ?? $json.result ?? $json;\n\nif (typeof raw === 'string') {\n  let text = raw.trim();\n\n  // Entferne Code-Fences: ```json ... ``` oder ``` ... ```\n  if (text.startsWith('```')) {\n    const firstNewline = text.indexOf('\\n');\n    if (firstNewline !== -1) {\n      text = text.slice(firstNewline + 1);\n    }\n\n    const fenceIndex = text.lastIndexOf('```');\n    if (fenceIndex !== -1) {\n      text = text.slice(0, fenceIndex);\n    }\n  }\n\n  text = text.trim();\n\n  try {\n    raw = JSON.parse(text);\n  } catch (e) {\n    throw new Error('LLM did not return valid JSON: ' + e.message);\n  }\n}\n\nif (!Array.isArray(raw)) {\n  throw new Error('Expected an array of recipes from LLM');\n}\n\nif (raw.length > 3) {\n  raw = raw.slice(0, 3);\n}\n\nreturn raw.map((recipe) => ({ json: recipe }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -96
+      ],
+      "id": "ef7fd791-8358-4824-941b-8a0d35f80eb3",
+      "name": "Normalize & Validate Recipes"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        592,
+        -96
+      ],
+      "id": "198defe3-8939-499c-8404-6f0d4df85e4a",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        88,
+        128
+      ],
+      "id": "966d0c40-debd-4f6d-af04-e47646c8cd03",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CgCWaGS9twzl8okn",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate & Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate & Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Validate Recipes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Validate Recipes": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "18c08fb34b3b741bb865416cbc33536b72bef01fc90168069f6640ca14a0e1ec"
+  }
+}
