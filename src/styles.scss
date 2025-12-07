@@ -56,3 +56,43 @@ input:focus, textarea:focus {
 .pointer {
     cursor: pointer;
 }
+
+.chef-badge--1 {
+    background-color: $chef-1-bg !important;
+  
+    .recipe-detail__chef-icon,
+    .recipe-detail__direction-chef-icon {
+      width: 27.5px !important;
+      height: 22px !important;
+    }
+}
+  
+.chef-badge--2 {
+    background-color: $chef-2-bg !important;
+  
+    .recipe-detail__chef-icon,
+    .recipe-detail__direction-chef-icon {
+      width: 25px !important;
+      height: 22px !important;
+    }
+}
+  
+.chef-badge--3 {
+    background-color: $chef-3-bg !important;
+  
+    .recipe-detail__chef-icon,
+    .recipe-detail__direction-chef-icon {
+      width: 22px !important;
+      height: 22px !important;
+    }
+}
+  
+.chef-badge--4 {
+    background-color: $chef-4-bg !important;
+  
+    .recipe-detail__chef-icon,
+    .recipe-detail__direction-chef-icon {
+      width: 15px !important;
+      height: 22px !important;
+    }
+}

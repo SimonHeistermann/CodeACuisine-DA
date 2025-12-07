@@ -54,4 +54,4 @@ export interface GeneratedRecipe {
       extraIngredients: RecipeIngredient[];
     };
     directions: RecipeStep[];
-}  
+}

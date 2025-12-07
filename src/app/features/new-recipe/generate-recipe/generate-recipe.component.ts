@@ -3,12 +3,13 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 
-import { GenerateRecipeService } from '../../../core/services/generate-recipe-service/generate-recipe.service';
 import {
   UiIngredient,
   UnitOfMeasurement,
+  RecipeRequirements,
 } from '../../../core/models/recipe.model';
 import { ToastOverlayComponent } from '../../../shared/toast-overlay/toast-overlay.component';
+import { StateService } from '../../../core/services/state-service/state.service';
 
 @Component({
   selector: 'app-generate-recipe',
@@ -43,9 +44,21 @@ export class GenerateRecipeComponent {
   ];
 
   constructor(
-    public generateRecipeService: GenerateRecipeService,
-    private elementRef: ElementRef<HTMLElement>,
+    private readonly state: StateService,
+    private readonly elementRef: ElementRef<HTMLElement>,
   ) {}
+
+  /** Kurz-Getter ins State-Objekt für das Template */
+  get recipeRequirements(): RecipeRequirements {
+    return this.state.recipeRequirements;
+  }
+
+  /** Interner Getter für etwas kürzere Notation */
+  private get ingredients(): UiIngredient[] {
+    return this.state.recipeRequirements.ingredients;
+  }
+
+  // ================ UI-Events / Logik ================
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -125,11 +138,7 @@ export class GenerateRecipeComponent {
     }
   }
 
-  // ---- private helpers ----
-
-  private get ingredients(): UiIngredient[] {
-    return this.generateRecipeService.recipeRequirements.ingredients;
-  }
+  // ================ Helper ================
 
   private isClickInsideComponent(event: MouseEvent): boolean {
     const target = event.target as Node | null;
@@ -175,7 +184,7 @@ export class GenerateRecipeComponent {
   }
 
   private prependIngredient(ingredient: UiIngredient): void {
-    this.generateRecipeService.recipeRequirements.ingredients = [
+    this.state.recipeRequirements.ingredients = [
       ingredient,
       ...this.ingredients,
     ];

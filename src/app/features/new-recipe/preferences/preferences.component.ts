@@ -5,6 +5,8 @@ import { Router, RouterModule } from '@angular/router';
 import { GeneratingScreenComponent } from '../generating-screen/generating-screen.component';
 import { GenerateRecipeService } from '../../../core/services/generate-recipe-service/generate-recipe.service';
 import { ToastService } from './../../../core/services/toast-service/toast.service';
+import { StateService } from '../../../core/services/state-service/state.service';
+import { RecipeRequirements } from '../../../core/models/recipe.model';
 
 @Component({
   selector: 'app-preferences',
@@ -14,26 +16,28 @@ import { ToastService } from './../../../core/services/toast-service/toast.servi
   styleUrl: './preferences.component.scss',
 })
 export class PreferencesComponent {
-  readonly MAX_COUNT = 999;
+  readonly MAX_PORTIONS = 999;
   readonly MIN_COUNT = 1;
+  readonly MAX_COOKS = 6;
 
   isLoading = false;
 
-  preferences = {
-    times: [
-      { value: 'quick', label: 'Quick', description: 'up to 20min' },
-      { value: 'medium', label: 'Medium', description: '25–40min' },
-      { value: 'complex', label: 'Complex', description: 'over 45min' },
-    ],
-    cuisine: ['german', 'italian', 'indian', 'japanese', 'gourmet', 'fusion'],
-    dietPreferences: ['vegetarian', 'vegan', 'keto', 'no preferences'],
-  };
-
   constructor(
-    public generateRecipeService: GenerateRecipeService,
-    private router: Router,
-    private toastService: ToastService,
+    private readonly generateRecipeService: GenerateRecipeService,
+    private readonly state: StateService,
+    private readonly router: Router,
+    private readonly toastService: ToastService,
   ) {}
+
+  /** Optionen kommen zentral aus dem StateService */
+  get preferences() {
+    return this.state.preferencesOptions;
+  }
+
+  /** Kurz-Getter, damit das Template lesbar bleibt */
+  get recipeRequirements(): RecipeRequirements {
+    return this.state.recipeRequirements;
+  }
 
   get canGenerateRecipe(): boolean {
     return this.hasAllPreferences();
@@ -49,16 +53,18 @@ export class PreferencesComponent {
   }
 
   increaseAmount(key: 'portionsAmount' | 'cooksAmount'): void {
-    const current = this.generateRecipeService.recipeRequirements[key];
-    if (current < this.MAX_COUNT) {
-      this.generateRecipeService.recipeRequirements[key] = current + 1;
+    const current = this.recipeRequirements[key];
+    const limit = key === 'cooksAmount' ? this.MAX_COOKS : this.MAX_PORTIONS;
+
+    if (current < limit) {
+      this.recipeRequirements[key] = current + 1;
     }
   }
 
   decreaseAmount(key: 'portionsAmount' | 'cooksAmount'): void {
-    const current = this.generateRecipeService.recipeRequirements[key];
+    const current = this.recipeRequirements[key];
     if (current > this.MIN_COUNT) {
-      this.generateRecipeService.recipeRequirements[key] = current - 1;
+      this.recipeRequirements[key] = current - 1;
     }
   }
 
@@ -66,17 +72,15 @@ export class PreferencesComponent {
     key: 'cookingTime' | 'cuisine' | 'dietPreferences',
     value: string,
   ): void {
-    this.generateRecipeService.recipeRequirements[key] = value;
+    this.recipeRequirements[key] = value;
   }
 
   private hasNoIngredients(): boolean {
-    return (
-      this.generateRecipeService.recipeRequirements.ingredients.length === 0
-    );
+    return this.recipeRequirements.ingredients.length === 0;
   }
 
   private hasAllPreferences(): boolean {
-    const req = this.generateRecipeService.recipeRequirements;
+    const req = this.recipeRequirements;
     return !!(req.cookingTime && req.cuisine && req.dietPreferences);
   }
 

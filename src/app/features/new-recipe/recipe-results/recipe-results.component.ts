@@ -6,7 +6,7 @@ import {
   GeneratedRecipe,
   RecipeRequirements,
 } from '../../../core/models/recipe.model';
-import { GenerateRecipeService } from '../../../core/services/generate-recipe-service/generate-recipe.service';
+import { StateService } from '../../../core/services/state-service/state.service';
 
 @Component({
   selector: 'app-recipe-results',
@@ -16,16 +16,14 @@ import { GenerateRecipeService } from '../../../core/services/generate-recipe-se
   styleUrl: './recipe-results.component.scss',
 })
 export class RecipeResultsComponent {
-  constructor(
-    private readonly generateRecipeService: GenerateRecipeService,
-  ) {}
+  constructor(private readonly state: StateService) {}
 
   get recipes(): GeneratedRecipe[] {
-    return this.generateRecipeService.generatedRecipes ?? [];
+    return this.state.generatedRecipes ?? [];
   }
 
   get requirements(): RecipeRequirements {
-    return this.generateRecipeService.recipeRequirements;
+    return this.state.recipeRequirements;
   }
 
   get hasDietPreference(): boolean {

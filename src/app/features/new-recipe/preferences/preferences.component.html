@@ -13,6 +13,7 @@
         />
       </a>
     </header>
+
     <section class="preferences">
       <a
         class="preferences__back-link"
@@ -27,13 +28,16 @@
         </span>
         <span class="preferences__back-text">Ingredients</span>
       </a>
+
       <div class="preferences__content">
         <h1 class="preferences__title">Choose your preferences</h1>
+
         <div class="preferences__counts">
           <div class="preferences__count-group">
             <h3 class="preferences__count-label">
               How many portions you need?
             </h3>
+
             <div class="preferences__counter">
               <button
                 type="button"
@@ -46,8 +50,9 @@
                   class="preferences__counter-icon"
                 />
               </button>
+
               <span class="preferences__counter-value">
-                {{ generateRecipeService.recipeRequirements.portionsAmount }}
+                {{ recipeRequirements.portionsAmount }}
               </span>
 
               <span class="preferences__counter-unit">Portions</span>
@@ -65,10 +70,12 @@
               </button>
             </div>
           </div>
+
           <div class="preferences__count-group">
             <h3 class="preferences__count-label">
               How many are cooking?
             </h3>
+
             <div class="preferences__counter">
               <button
                 type="button"
@@ -81,10 +88,13 @@
                   class="preferences__counter-icon"
                 />
               </button>
+
               <span class="preferences__counter-value">
-                {{ generateRecipeService.recipeRequirements.cooksAmount }}
+                {{ recipeRequirements.cooksAmount }}
               </span>
+
               <span class="preferences__counter-unit">Person</span>
+
               <button
                 type="button"
                 class="preferences__counter-btn"
@@ -99,7 +109,9 @@
             </div>
           </div>
         </div>
+
         <div class="preferences__card">
+          <!-- Cooking time -->
           <div class="preferences__section">
             <div class="preferences__section-header">
               <img
@@ -119,7 +131,7 @@
                   class="preferences__time-option"
                   [ngClass]="{
                     'preferences__time-option--active':
-                      generateRecipeService.recipeRequirements.cookingTime === time.value
+                      recipeRequirements.cookingTime === time.value
                   }"
                   (click)="selectPreference('cookingTime', time.value)"
                 >
@@ -136,6 +148,8 @@
               }
             </div>
           </div>
+
+          <!-- Cuisine -->
           <div class="preferences__section">
             <div class="preferences__section-header">
               <img
@@ -147,6 +161,7 @@
                 Cuisine
               </h3>
             </div>
+
             <div class="preferences__chip-row">
               @for (cuisine of preferences.cuisine; track cuisine) {
                 <button
@@ -154,7 +169,7 @@
                   class="preferences__chip"
                   [ngClass]="{
                     'preferences__chip--active':
-                      generateRecipeService.recipeRequirements.cuisine === cuisine
+                      recipeRequirements.cuisine === cuisine
                   }"
                   (click)="selectPreference('cuisine', cuisine)"
                 >
@@ -165,6 +180,8 @@
               }
             </div>
           </div>
+
+          <!-- Diet preferences -->
           <div class="preferences__section">
             <div class="preferences__section-header">
               <img
@@ -176,6 +193,7 @@
                 Diet preferences
               </h3>
             </div>
+
             <div class="preferences__chip-row">
               @for (diet of preferences.dietPreferences; track diet) {
                 <button
@@ -183,7 +201,7 @@
                   class="preferences__chip"
                   [ngClass]="{
                     'preferences__chip--active':
-                      generateRecipeService.recipeRequirements.dietPreferences === diet
+                      recipeRequirements.dietPreferences === diet
                   }"
                   (click)="selectPreference('dietPreferences', diet)"
                 >
@@ -195,12 +213,16 @@
             </div>
           </div>
         </div>
+
         <button
           type="button"
           class="preferences__submit-btn"
           [disabled]="!canGenerateRecipe"
-          [ngClass]="{ 'preferences__submit-btn--disabled': !canGenerateRecipe }"
-          (click)="onGenerateRecipe()"
+          [ngClass]="{
+            'preferences__submit-btn--disabled': !canGenerateRecipe
+          }"
+          (click)="onGenerateRecipe()
+          "
         >
           Generate a recipe
         </button>

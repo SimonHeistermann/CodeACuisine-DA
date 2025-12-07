@@ -116,13 +116,13 @@
         <section class="generate__card generate__card--list">
           <h3 class="generate__list-title">List of your ingredients</h3>
 
-          @if (generateRecipeService.recipeRequirements.ingredients.length === 0) {
+          @if (recipeRequirements.ingredients.length === 0) {
             <p class="generate__list-placeholder">
               Start by adding ingredients on the left.
             </p>
           } @else {
             <ul class="generate__list">
-              @for (ingredient of generateRecipeService.recipeRequirements.ingredients; track $index) {
+              @for (ingredient of recipeRequirements.ingredients; track $index) {
                 <li
                   class="generate__list-item"
                   (dblclick)="toggleEditModeForIngredient(ingredient)"
@@ -225,7 +225,7 @@
         </section>
       </div>
 
-      @if (generateRecipeService.recipeRequirements.ingredients.length > 0) {
+      @if (recipeRequirements.ingredients.length > 0) {
         <a
           class="generate__next-btn"
           [routerLink]="['/preferences']"

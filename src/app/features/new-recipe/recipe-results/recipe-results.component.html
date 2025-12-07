@@ -83,7 +83,7 @@
   
                 <a
                   class="results__view-btn"
-                  [routerLink]="['/recipe-detail', $index]"
+                  [routerLink]="['/recipe-results', $index]"
                 >
                   View
                 </a>
@@ -98,18 +98,18 @@
   
         <div class="results__footer">
             <a
-            class="results__generate-new"
-            [routerLink]="['/generate-recipe']"
-          >
-            <span class="results__back-text">Generate new recipe</span>
-            <span class="results__back-icon-wrapper">
-              <img
-                src="img/arrow_off_white_right.png"
-                alt="to generate recipe"
-                class="results__back-icon"
-              />
-            </span>
-          </a>
+                class="results__generate-new"
+                [routerLink]="['/generate-recipe']"
+            >
+                <span class="results__back-text">Generate new recipe</span>
+                <span class="results__back-icon-wrapper">
+                <img
+                    src="img/arrow_off_white_right.png"
+                    alt="to generate recipe"
+                    class="results__back-icon"
+                />
+                </span>
+            </a>
         </div>
       </section>
     </div>

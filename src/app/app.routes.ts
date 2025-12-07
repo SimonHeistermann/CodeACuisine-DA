@@ -5,6 +5,7 @@ import { PreferencesComponent } from './features/new-recipe/preferences/preferen
 import { GeneratingScreenComponent } from './features/new-recipe/generating-screen/generating-screen.component';
 import { RecipeResultsComponent } from './features/new-recipe/recipe-results/recipe-results.component';
 import { RecipeDetailComponent } from './features/recipe-detail/recipe-detail.component';
+import { CookbookComponent } from './features/cookbook/cookbook.component';
 
 export const routes: Routes = [
   { path: '', component: HeroComponent },
@@ -12,5 +13,7 @@ export const routes: Routes = [
   { path: 'preferences', component: PreferencesComponent },
   { path: 'generating', component: GeneratingScreenComponent },
   { path: 'recipe-results', component: RecipeResultsComponent },
+  { path: 'recipe-results/:id', component: RecipeDetailComponent },
+  { path: 'cookbook', component: CookbookComponent },
   { path: '**', redirectTo: '' },
 ];

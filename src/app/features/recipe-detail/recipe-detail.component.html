@@ -1,1 +1,298 @@
-<p>recipe-detail works!</p>
+<main class="recipe-detail-page">
+    <div class="recipe-detail-page__inner">
+      <header class="recipe-detail-page__header">
+        <a [routerLink]="['/']">
+          <img
+            src="img/logo_green.png"
+            alt="Code à Cuisine logo"
+            class="recipe-detail-page__logo"
+          />
+        </a>
+      </header>
+  
+      <a class="recipe-detail-page__back-link" [routerLink]="['/recipe-results']">
+        <span class="recipe-detail-page__back-icon-wrapper">
+          <img
+            src="img/arrow_green_left.png"
+            alt="back to results"
+            class="recipe-detail-page__back-icon"
+          />
+        </span>
+        <span class="recipe-detail-page__back-text">Recipe results</span>
+      </a>
+  
+      @if (selectedRecipe) {
+        <section class="recipe-detail">
+          <div class="recipe-detail__card">
+            <!-- ===== Top summary block ===== -->
+            <div class="recipe-detail__summary">
+              <div class="recipe-detail__summary-main">
+                <div class="recipe-detail__summary-meta">
+                  <img
+                    src="img/clock_green.png"
+                    alt="cooking time"
+                    class="recipe-detail__summary-meta-icon"
+                  />
+                  <span class="recipe-detail__summary-meta-text">
+                    Cooking time: {{ selectedRecipe.cookingTime }}
+                  </span>
+                </div>
+  
+                <h1 class="recipe-detail__title">
+                  {{ selectedRecipe.title }}
+                </h1>
+  
+                <div class="recipe-detail__cooks">
+                  <span class="recipe-detail__cooks-label">
+                    Cooking person: {{ selectedRecipe.cooksAmount }}
+                  </span>
+  
+                  <div class="recipe-detail__cooks-badges">
+                    @for (chef of chefIndexes; track chef) {
+                      <span
+                        class="recipe-detail__chef-badge"
+                        [ngClass]="getChefBadgeModifier(chef)"
+                      >
+                        <img
+                          [src]="getChefIcon(chef)"
+                          alt="chef icon"
+                          class="recipe-detail__chef-icon"
+                        />
+                        Chef {{ chef }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+  
+              <div class="recipe-detail__summary-side">
+                <div class="recipe-detail__tags">
+                  @if (hasDietPreference) {
+                    <span class="recipe-detail__tag">
+                      {{ selectedRecipe.preferences.dietPreferences }}
+                    </span>
+                  }
+  
+                  @if (selectedRecipe.preferences.cookingTime) {
+                    <span class="recipe-detail__tag">
+                      {{ selectedRecipe.preferences.cookingTime }}
+                    </span>
+                  }
+  
+                  @if (selectedRecipe.preferences.cuisine) {
+                    <span class="recipe-detail__tag">
+                      {{ selectedRecipe.preferences.cuisine }}
+                    </span>
+                  }
+  
+                  <span class="recipe-detail__tag recipe-detail__tag--icon">
+                    <img
+                      src="img/heart_dark.png"
+                      alt="likes"
+                      class="recipe-detail__tag-heart-icon"
+                    />
+                    66
+                  </span>
+                </div>
+  
+                <div class="recipe-detail__nutrition">
+                  <h3 class="recipe-detail__nutrition-title">
+                    Nutritional information
+                  </h3>
+  
+                  <div class="recipe-detail__nutrition-grid">
+                    <div class="recipe-detail__nutrition-item">
+                      <p class="recipe-detail__nutrition-label">Energy</p>
+                      <p class="recipe-detail__nutrition-value">
+                        {{ selectedRecipe.nutritionalInformation.calories }} kcal
+                      </p>
+                    </div>
+  
+                    <div class="recipe-detail__nutrition-item">
+                      <p class="recipe-detail__nutrition-label">Protein</p>
+                      <p class="recipe-detail__nutrition-value">
+                        {{ selectedRecipe.nutritionalInformation.proteins }}g
+                      </p>
+                    </div>
+  
+                    <div class="recipe-detail__nutrition-item">
+                      <p class="recipe-detail__nutrition-label">Fat</p>
+                      <p class="recipe-detail__nutrition-value">
+                        {{ selectedRecipe.nutritionalInformation.fats }}g
+                      </p>
+                    </div>
+  
+                    <div class="recipe-detail__nutrition-item">
+                      <p class="recipe-detail__nutrition-label">Carbs</p>
+                      <p class="recipe-detail__nutrition-value">
+                        {{ selectedRecipe.nutritionalInformation.carbs }}g
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+  
+            <div class="recipe__details">
+              <!-- ===== Ingredients ===== -->
+              <section class="recipe-detail__section">
+                <div class="recipe-detail__section-banner">
+                  <img
+                    src="img/hero_ingredients.png"
+                    alt="Ingredients banner"
+                    class="recipe-detail__section-banner-image"
+                  />
+                  <h2 class="recipe-detail__section-banner-title">
+                    Ingredients
+                  </h2>
+                </div>
+  
+                <div class="recipe-detail__ingredients">
+                  <div class="recipe-detail__ingredients-column">
+                    <h3 class="recipe-detail__ingredients-heading">
+                      Your ingredients
+                    </h3>
+  
+                    <ul class="recipe-detail__ingredients-list">
+                      @for (ingredient of selectedRecipe.ingredients.yourIngredients; track $index) {
+                        <li class="recipe-detail__ingredients-item">
+                          <span class="recipe-detail__ingredients-amount">
+                            {{ formatIngredientAmount(ingredient) }}
+                          </span>
+                          <span class="recipe-detail__ingredients-name">
+                            {{ ingredient.ingredient }}
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+  
+                  <div class="recipe-detail__ingredients-column">
+                    <h3 class="recipe-detail__ingredients-heading">
+                      Extra ingredients
+                    </h3>
+  
+                    <ul class="recipe-detail__ingredients-list">
+                      @for (ingredient of selectedRecipe.ingredients.extraIngredients; track $index) {
+                        <li class="recipe-detail__ingredients-item">
+                          <span class="recipe-detail__ingredients-amount">
+                            {{ formatIngredientAmount(ingredient) }}
+                          </span>
+                          <span class="recipe-detail__ingredients-name">
+                            {{ ingredient.ingredient }}
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+              </section>
+  
+              <!-- ===== Directions ===== -->
+              <section class="recipe-detail__section">
+                <div class="recipe-detail__section-banner-directions">
+                  <img
+                    src="img/hero_directions.png"
+                    alt="Directions banner"
+                    class="recipe-detail__section-banner-image-directions"
+                  />
+                  <h2 class="recipe-detail__section-banner-title-directions">
+                    Directions
+                  </h2>
+                </div>
+  
+                <div class="recipe-detail__directions">
+                  @for (direction of selectedRecipe.directions; track $index) {
+                    <article class="recipe-detail__direction-item">
+                      <header class="recipe-detail__direction-header">
+                        <h3 class="recipe-detail__direction-title">
+                          <span class="recipe-detail__direction-step">
+                            {{ $index + 1 }}.
+                          </span>
+                          {{ direction.title }}
+                        </h3>
+  
+                        <span
+                          class="recipe-detail__direction-chef"
+                          [ngClass]="getChefBadgeModifier(direction.cook)"
+                        >
+                          <img
+                            [src]="getChefIcon(direction.cook)"
+                            alt="chef"
+                            class="recipe-detail__direction-chef-icon"
+                          />
+                          Chef {{ direction.cook }}
+                        </span>
+                      </header>
+  
+                      <p class="recipe-detail__direction-text">
+                        {{ direction.description }}
+                      </p>
+                    </article>
+                  }
+                </div>
+              </section>
+            </div>
+  
+            <!-- ===== Finished CTA inside card ===== -->
+            <div class="recipe-detail__finished">
+              <div class="recipe-detail__finished-inner">
+                <span class="recipe-detail__finished-question">
+                  Just finished this meal?
+                </span>
+                <span class="recipe-detail__finished-text">
+                  Give it a heart, so that the others know this is delicious.
+                </span>
+              </div>
+  
+              <button
+                type="button"
+                class="recipe-detail__favorite-button"
+                [class.recipe-detail__favorite-button--active]="isFavorite"
+                (click)="onToggleFavorite()"
+                (mouseenter)="onFavoriteMouseEnter()"
+                (mouseleave)="onFavoriteMouseLeave()"
+                [attr.aria-pressed]="isFavorite"
+                aria-label="Toggle favorite for this recipe"
+              >
+                <img
+                  [src]="favoriteIcon"
+                  alt="give recipe a heart"
+                  class="recipe-detail__finished-icon"
+                />
+              </button>
+            </div>
+          </div>
+  
+          <!-- ===== CTA block below card ===== -->
+          <footer class="recipe-detail__cta">
+            <span class="recipe-detail__cta-text">
+              Find inspiration for your next culinary adventure!
+            </span>
+  
+            <a [routerLink]="['/cookbook']" class="recipe-detail__cta-button">
+              Cookbook
+            </a>
+          </footer>
+  
+          <a
+            class="recipe-detail__generate-new"
+            [routerLink]="['/generate-recipe']"
+          >
+            <span class="recipe-detail__back-text">Generate new recipe</span>
+            <span class="recipe-details__back-icon-wrapper">
+              <img
+                src="img/arrow_green_right.png"
+                alt="to generate recipe"
+                class="recipe-detail__back-icon"
+              />
+            </span>
+          </a>
+        </section>
+      } @else {
+        <p class="recipe-detail-page__empty">
+          No recipe selected. Please go back to the recipe results.
+        </p>
+      }
+    </div>
+</main>  
