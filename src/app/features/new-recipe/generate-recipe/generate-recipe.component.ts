@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule, NgForm } from '@angular/forms';
 
 import {
@@ -14,7 +14,7 @@ import { StateService } from '../../../core/services/state-service/state.service
 @Component({
   selector: 'app-generate-recipe',
   standalone: true,
-  imports: [RouterModule, FormsModule, CommonModule, ToastOverlayComponent],
+  imports: [RouterModule, FormsModule, ToastOverlayComponent],
   templateUrl: './generate-recipe.component.html',
   styleUrl: './generate-recipe.component.scss',
 })
