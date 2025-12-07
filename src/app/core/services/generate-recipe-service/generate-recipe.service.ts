@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
 
 import {
   RecipeRequirements,
@@ -8,6 +9,7 @@ import {
 } from '../../models/recipe.model';
 import { environment } from '../../../../environments/environment';
 import { StateService } from '../state-service/state.service';
+import { FirestoreRecipeService } from '../firebase-recipe-service/firebase-recipe.service';
 
 const webhookUrl = environment.webhookUrl;
 
@@ -15,7 +17,6 @@ const webhookUrl = environment.webhookUrl;
   providedIn: 'root',
 })
 export class GenerateRecipeService {
-  // Nur noch Referenzen auf den State, kein eigener Zustand mehr
   get recipeRequirements(): RecipeRequirements {
     return this.state.recipeRequirements;
   }
@@ -27,17 +28,19 @@ export class GenerateRecipeService {
   constructor(
     private http: HttpClient,
     private state: StateService,
+    private firestoreRecipes: FirestoreRecipeService,
   ) {}
 
   generateRecipe(): Observable<GeneratedRecipe[]> {
-    console.log('Sending to n8n:', this.state.recipeRequirements);
+    const payload = this.state.recipeRequirements;
 
-    return this.http
-      .post<GeneratedRecipe[]>(webhookUrl, this.state.recipeRequirements)
-      .pipe(
-        tap((recipes) => {
-          this.state.generatedRecipes = recipes;
-        }),
-      );
+    return this.http.post<GeneratedRecipe[]>(webhookUrl, payload).pipe(
+      switchMap((recipes) =>
+        from(this.firestoreRecipes.syncGeneratedRecipes(recipes)),
+      ),
+      tap((syncedRecipes) => {
+        this.state.generatedRecipes = syncedRecipes;
+      }),
+    );
   }
 }

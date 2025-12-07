@@ -1,63 +1,262 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { map, tap, Observable, forkJoin, of } from 'rxjs';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  addDoc,
+  query,
+  where,
+  Timestamp,
+  getDocs,
+  doc,
+  updateDoc,
+  increment,
+} from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import { environment } from '../../../../environments/environment';
-import { GeneratedRecipe } from '../../models/recipe.model';
+import {
+  GeneratedRecipe,
+  RecipeIngredient,
+} from '../../models/recipe.model';
 import { StateService } from '../state-service/state.service';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class FirebaseRecipeService {
-  /** z.B. 'https://dein-project-id-default-rtdb.europe-west1.firebasedatabase.app/' */
-  private readonly baseUrl = environment.databaseUrl;
+@Injectable({ providedIn: 'root' })
+export class FirestoreRecipeService {
+  /** Name der Collection in Firestore */
+  private readonly collectionName = 'recipes';
 
   constructor(
-    private readonly http: HttpClient,
+    private readonly firestore: Firestore,
     private readonly state: StateService,
   ) {}
 
-  /**
-   * Speichert alle aktuell generierten Rezepte im Cookbook.
-   */
-  saveCurrentResultsToCookbook(): Observable<unknown[]> {
-    const recipes = this.state.generatedRecipes ?? [];
+  /** Referenz auf die "recipes"-Collection */
+  private recipesCollection() {
+    return collection(this.firestore, this.collectionName);
+  }
 
-    // Wenn es nichts zu speichern gibt, trotzdem ein gültiges Observable liefern
-    if (!recipes.length) {
-      return of([]);
+  // =====================================================
+  // Signatur-Logik (Duplikate erkennen)
+  // =====================================================
+
+  /** Öffentliche Helper-Funktion: Signatur holen oder erzeugen */
+  getOrCreateSignature(recipe: GeneratedRecipe): string {
+    if (recipe.recipeSignature) {
+      return recipe.recipeSignature;
     }
 
-    // Alle POST-Requests zusammenfassen
-    return forkJoin(
-      recipes.map((recipe) =>
-        this.http.post<unknown>(`${this.baseUrl}recipes.json`, recipe),
-      ),
+    const signature = this.buildRecipeSignature(recipe);
+    recipe.recipeSignature = signature;
+    return signature;
+  }
+
+  /** Erzeugt einen deterministischen Key für alle Zutaten */
+  private buildIngredientsKey(recipe: GeneratedRecipe): string {
+    const allIngredients: RecipeIngredient[] = [
+      ...recipe.ingredients.yourIngredients,
+      ...recipe.ingredients.extraIngredients,
+    ];
+
+    return allIngredients
+      .map((ingredient) => this.normalizeIngredient(ingredient))
+      .sort()
+      .join(';');
+  }
+
+  private normalizeIngredient(ingredient: RecipeIngredient): string {
+    const name = ingredient.ingredient.trim().toLowerCase();
+    const size = ingredient.servingSize ?? 0;
+    const unit =
+      ingredient.unit?.abbreviation ||
+      ingredient.unit?.name ||
+      '';
+
+    return `${name}|${size}|${unit}`;
+  }
+
+  private buildRecipeSignature(recipe: GeneratedRecipe): string {
+    const title = recipe.title.trim().toLowerCase();
+    const prefs = recipe.preferences ?? {};
+    const cuisine = (prefs.cuisine ?? '').toLowerCase();
+    const time = (prefs.cookingTime ?? '').toLowerCase();
+    const diet = (prefs.dietPreferences ?? '').toLowerCase();
+    const cooks = String(recipe.cooksAmount ?? 0);
+
+    const ingredientsKey = this.buildIngredientsKey(recipe);
+
+    return [title, cuisine, time, diet, cooks, ingredientsKey].join(
+      '||',
+    );
+  }
+
+  private async findBySignature(
+    signature: string,
+  ): Promise<(GeneratedRecipe & { id: string }) | null> {
+    const colRef = this.recipesCollection();
+    const qRef = query(colRef, where('recipeSignature', '==', signature));
+    const snap = await getDocs(qRef);
+
+    if (snap.empty) {
+      return null;
+    }
+
+    const docSnap = snap.docs[0];
+    return {
+      id: docSnap.id,
+      ...(docSnap.data() as GeneratedRecipe),
+    };
+  }
+
+  private async createRecipeDoc(
+    recipe: GeneratedRecipe,
+    signature: string,
+    likes: number,
+    options?: { isSeed?: boolean },
+  ): Promise<void> {
+    const payload: any = {
+      ...recipe,
+      recipeSignature: signature,
+      likes,
+      isSeedRecipe: options?.isSeed ?? false,
+      createdAt: Timestamp.now(),
+    };
+
+    await addDoc(this.recipesCollection(), payload);
+  }
+
+  // =====================================================
+  // Auto-Save nach Generierung
+  // =====================================================
+
+  /**
+   * Nimmt die frisch generierten Rezepte,
+   * sorgt für Eintrag in Firestore
+   * und gibt sie mit korrektem likes-Wert zurück.
+   */
+  async syncGeneratedRecipes(
+    recipes: GeneratedRecipe[],
+  ): Promise<GeneratedRecipe[]> {
+    const updated: GeneratedRecipe[] = [];
+
+    for (const recipe of recipes) {
+      const synced = await this.ensureRecipeInCookbook(recipe, {
+        isSeed: false,
+      });
+      updated.push(synced);
+    }
+
+    return updated;
+  }
+
+  /**
+   * Sorgt dafür, dass das Rezept in Firestore existiert.
+   * Falls schon vorhanden → likes aus DB übernehmen.
+   * Falls neu → anlegen mit likes (Default 0).
+   */
+  async ensureRecipeInCookbook(
+    recipe: GeneratedRecipe,
+    options?: { isSeed?: boolean },
+  ): Promise<GeneratedRecipe> {
+    const signature = this.getOrCreateSignature(recipe);
+    const existing = await this.findBySignature(signature);
+
+    if (existing) {
+      const likes = existing.likes ?? 0;
+      return {
+        ...recipe,
+        id: existing.id,
+        recipeSignature: signature,
+        likes,
+      };
+    }
+
+    const likes = recipe.likes ?? 0;
+
+    await this.createRecipeDoc(recipe, signature, likes, options);
+
+    return {
+      ...recipe,
+      recipeSignature: signature,
+      likes,
+    };
+  }
+
+  // =====================================================
+  // Likes / Favorites
+  // =====================================================
+
+  /**
+   * Aktualisiert den Like-Status eines Rezepts.
+   * isFavorite = true  → likes +1
+   * isFavorite = false → likes -1 (mind. 0)
+   *
+   * Gibt den neuen likes-Wert zurück.
+   */
+  async updateLikesForRecipe(
+    recipe: GeneratedRecipe,
+    isFavorite: boolean,
+  ): Promise<number> {
+    const signature = this.getOrCreateSignature(recipe);
+    const existing = await this.findBySignature(signature);
+    const delta = isFavorite ? 1 : -1;
+
+    if (!existing) {
+      const likes = isFavorite ? 1 : 0;
+      await this.createRecipeDoc(recipe, signature, likes, {
+        isSeed: false,
+      });
+      return likes;
+    }
+
+    const docRef = doc(
+      this.firestore,
+      this.collectionName,
+      existing.id,
+    );
+
+    const currentLikes = existing.likes ?? 0;
+    const newLikes = Math.max(currentLikes + delta, 0);
+
+    await updateDoc(docRef, { likes: increment(delta) });
+
+    return newLikes;
+  }
+
+  // =====================================================
+  // Cookbook lesen (z.B. Cookbooks-Seite)
+  // =====================================================
+
+  /**
+   * Lädt alle Cookbook-Rezepte aus Firestore
+   * und schreibt sie in den State.
+   * Optional: nach Cuisine filtern.
+   */
+  loadCookbook(cuisine?: string): Observable<GeneratedRecipe[]> {
+    const colRef = this.recipesCollection();
+
+    const qRef = cuisine
+      ? query(colRef, where('preferences.cuisine', '==', cuisine))
+      : colRef;
+
+    return collectionData(qRef, { idField: 'id' }).pipe(
+      map((docs) => docs as GeneratedRecipe[]),
+      map((recipes) => {
+        this.state.allRecipes = recipes;
+        return recipes;
+      }),
     );
   }
 
   /**
-   * Lädt alle Rezepte aus Firebase und schreibt sie in den State.
+   * Lädt nur Seed-Rezepte – z.B. für initial vorgefülltes Cookbook.
    */
-  loadCookbook(): Observable<GeneratedRecipe[]> {
-    return this.http
-      .get<Record<string, GeneratedRecipe> | null>(
-        `${this.baseUrl}recipes.json`,
-      )
-      .pipe(
-        map((response) => {
-          if (!response) return [];
-          return Object.values(response);
-        }),
-        tap((recipes) => {
-          this.state.allRecipes = recipes;
-        }),
-      );
-  }
+  loadSeedRecipes(): Observable<GeneratedRecipe[]> {
+    const colRef = this.recipesCollection();
+    const qRef = query(colRef, where('isSeedRecipe', '==', true));
 
-  /** Optionaler Helper, wenn du Cookbook-Daten überall brauchst */
-  get allRecipes(): GeneratedRecipe[] {
-    return this.state.allRecipes;
+    return collectionData(qRef, { idField: 'id' }).pipe(
+      map((docs) => docs as GeneratedRecipe[]),
+    );
   }
 }

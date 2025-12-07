@@ -7,6 +7,7 @@ import {
   RecipeIngredient,
 } from './../../core/models/recipe.model';
 import { StateService } from './../../core/services/state-service/state.service';
+import { FirestoreRecipeService } from './../../core/services/firebase-recipe-service/firebase-recipe.service';
 
 @Component({
   selector: 'app-recipe-detail',
@@ -21,6 +22,7 @@ export class RecipeDetailComponent implements OnInit {
 
   private readonly MAX_CHEFS = 6;
   private readonly UNIQUE_BADGES = 4;
+  private readonly FAVORITES_STORAGE_KEY = 'cac_favorites';
 
   isFavorite = false;
   isFavoriteHovered = false;
@@ -28,27 +30,56 @@ export class RecipeDetailComponent implements OnInit {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly state: StateService,
+    private readonly firestoreRecipes: FirestoreRecipeService,
   ) {}
 
-  ngOnInit(): void {
-    const routeIndex = this.activatedRoute.snapshot.paramMap.get('id');
-    if (routeIndex !== null) {
-      const recipeIndex = Number(routeIndex);
-      if (!Number.isNaN(recipeIndex)) {
-        const recipes = this.state.generatedRecipes || [];
-        this.selectedRecipe = recipes[recipeIndex] ?? null;
+  // ============ Lifecycle ============
 
-        const cooksAmount = this.selectedRecipe?.cooksAmount ?? 0;
-        const limited = Math.min(cooksAmount, this.MAX_CHEFS);
-        this.chefIndexes = Array.from({ length: limited }, (_, i) => i + 1);
-      }
-    }
+  ngOnInit(): void {
+    this.initRecipeFromRoute();
+    this.initFavoriteState();
   }
+
+  private initRecipeFromRoute(): void {
+    const routeIndex = this.activatedRoute.snapshot.paramMap.get('id');
+    if (routeIndex === null) return;
+
+    const index = Number(routeIndex);
+    if (Number.isNaN(index)) return;
+
+    const recipes = this.state.generatedRecipes ?? [];
+    this.selectedRecipe = recipes[index] ?? null;
+
+    const cooks = this.selectedRecipe?.cooksAmount ?? 0;
+    const limited = Math.min(cooks, this.MAX_CHEFS);
+    this.chefIndexes = Array.from({ length: limited }, (_, i) => i + 1);
+  }
+
+  private initFavoriteState(): void {
+    if (!this.selectedRecipe) return;
+
+    const signature =
+      this.firestoreRecipes.getOrCreateSignature(this.selectedRecipe);
+
+    this.selectedRecipe.recipeSignature = signature;
+    this.isFavorite = this.loadFavoriteFromStorage(signature);
+    this.isFavoriteHovered = false;
+
+    this.syncLikesFromBackend(this.selectedRecipe);
+  }
+
+  // ============ Computed Properties ============
 
   get hasDietPreference(): boolean {
     const pref = this.selectedRecipe?.preferences?.dietPreferences;
     return !!pref && pref !== 'no preferences';
   }
+
+  get likesCount(): number {
+    return this.selectedRecipe?.likes ?? 0;
+  }
+
+  // ============ UI Helper ============
 
   formatIngredientAmount(ingredient: RecipeIngredient): string {
     const amount = ingredient.servingSize;
@@ -61,9 +92,11 @@ export class RecipeDetailComponent implements OnInit {
 
   private mapChefToBadgeIndex(index: number): number {
     if (index <= 0) return 1;
+
     const normalized =
       ((index - 1) % this.UNIQUE_BADGES + this.UNIQUE_BADGES) %
         this.UNIQUE_BADGES + 1;
+
     return normalized;
   }
 
@@ -89,24 +122,38 @@ export class RecipeDetailComponent implements OnInit {
     }
   }
 
+  /** Liefert das passende Icon je nach State (normal, hover, clicked) */
   get favoriteIcon(): string {
-    if (this.isFavorite) {
-      return 'img/heart_green_clicked.png';
-    }
-    if (this.isFavoriteHovered) {
-      return 'img/heart_green_hover.png';
-    }
+    if (this.isFavorite) return 'img/heart_green_clicked.png';
+    if (this.isFavoriteHovered) return 'img/heart_green_hover.png';
     return 'img/heart_green.png';
   }
 
-  /**
-   * Toggle favorite state for the current recipe.
-   * TODO: Später hier einen Cookbook/Favorites-Service einbinden,
-   *       der das Rezept im Cookbook speichert bzw. wieder entfernt.
-   */
-  onToggleFavorite(): void {
-    this.isFavorite = !this.isFavorite;
-    this.isFavoriteHovered = false;
+  // ============ Favorites / Likes ============
+
+  async onToggleFavorite(): Promise<void> {
+    if (!this.selectedRecipe || !this.selectedRecipe.recipeSignature) {
+      return;
+    }
+
+    const nextState = !this.isFavorite;
+
+    try {
+      const likes = await this.firestoreRecipes.updateLikesForRecipe(
+        this.selectedRecipe,
+        nextState,
+      );
+
+      this.isFavorite = nextState;
+      this.isFavoriteHovered = false;
+      this.updateSelectedRecipeLikes(likes);
+      this.saveFavoriteToStorage(
+        this.selectedRecipe.recipeSignature,
+        nextState,
+      );
+    } catch (error) {
+      console.error('Error updating favorite:', error);
+    }
   }
 
   onFavoriteMouseEnter(): void {
@@ -117,5 +164,71 @@ export class RecipeDetailComponent implements OnInit {
 
   onFavoriteMouseLeave(): void {
     this.isFavoriteHovered = false;
+  }
+
+  private updateSelectedRecipeLikes(likes: number): void {
+    if (!this.selectedRecipe) return;
+    this.selectedRecipe = {
+      ...this.selectedRecipe,
+      likes,
+    };
+  }
+
+  private syncLikesFromBackend(recipe: GeneratedRecipe): void {
+    this.firestoreRecipes
+      .ensureRecipeInCookbook(recipe)
+      .then((updated) => {
+        if (!this.selectedRecipe) return;
+
+        this.selectedRecipe = {
+          ...this.selectedRecipe,
+          likes: updated.likes ?? 0,
+          recipeSignature: updated.recipeSignature,
+        };
+      })
+      .catch((error) =>
+        console.error('Error syncing recipe from Firestore:', error),
+      );
+  }
+
+  // ============ LocalStorage ============
+
+  private loadFavoriteFromStorage(signature: string): boolean {
+    const raw = localStorage.getItem(this.FAVORITES_STORAGE_KEY);
+    if (!raw) return false;
+
+    try {
+      const parsed = JSON.parse(raw) as Record<string, boolean>;
+      return !!parsed[signature];
+    } catch {
+      return false;
+    }
+  }
+
+  private saveFavoriteToStorage(
+    signature: string,
+    isFavorite: boolean,
+  ): void {
+    const raw = localStorage.getItem(this.FAVORITES_STORAGE_KEY);
+    let data: Record<string, boolean> = {};
+
+    if (raw) {
+      try {
+        data = JSON.parse(raw) as Record<string, boolean>;
+      } catch {
+        data = {};
+      }
+    }
+
+    if (isFavorite) {
+      data[signature] = true;
+    } else {
+      delete data[signature];
+    }
+
+    localStorage.setItem(
+      this.FAVORITES_STORAGE_KEY,
+      JSON.stringify(data),
+    );
   }
 }

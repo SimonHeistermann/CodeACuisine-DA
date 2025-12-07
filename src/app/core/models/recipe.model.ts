@@ -30,7 +30,7 @@ export interface NutritionalInformation {
     carbs: number;
 }
   
-export interface RecipePreferences {
+  export interface RecipePreferences {
     cookingTime?: string;
     cuisine?: string;
     dietPreferences?: string;
@@ -43,7 +43,10 @@ export interface RecipeStep {
     cook: number;
 }
   
-export interface GeneratedRecipe {
+  export interface GeneratedRecipe {
+    /** Firestore-Dokument-ID, falls vorhanden */
+    id?: string;
+  
     title: string;
     cookingTime: string;
     nutritionalInformation: NutritionalInformation;
@@ -54,4 +57,10 @@ export interface GeneratedRecipe {
       extraIngredients: RecipeIngredient[];
     };
     directions: RecipeStep[];
-}
+  
+    /** Globale Anzahl an Likes über alle User */
+    likes?: number;
+  
+    /** Deterministische Signatur zur Duplikats-Erkennung */
+    recipeSignature?: string;
+}  
