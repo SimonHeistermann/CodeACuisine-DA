@@ -1,6 +1,5 @@
 import { Component, ElementRef, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
-
 import { FormsModule, NgForm } from '@angular/forms';
 
 import {
@@ -10,6 +9,7 @@ import {
 } from '../../../core/models/recipe.model';
 import { ToastOverlayComponent } from '../../../shared/toast-overlay/toast-overlay.component';
 import { StateService } from '../../../core/services/state-service/state.service';
+import { IngredientAutocompleteService } from '../../../core/services/ingredient-autocomplete-service/ingredient-autocomplete.service';
 
 @Component({
   selector: 'app-generate-recipe',
@@ -33,27 +33,18 @@ export class GenerateRecipeComponent {
 
   ingredientName = '';
   ingredientSuggestions: string[] = [];
-
-  private readonly allIngredientSuggestions: readonly string[] = [
-    'Pasta',
-    'Baby spinach',
-    'Cherry tomatoes',
-    'Egg',
-    'Mushrooms',
-    'Onions',
-  ];
+  inlineSuggestion = '';
 
   constructor(
     private readonly state: StateService,
     private readonly elementRef: ElementRef<HTMLElement>,
+    private readonly ingredientAutocomplete: IngredientAutocompleteService,
   ) {}
 
-  /** Kurz-Getter ins State-Objekt für das Template */
   get recipeRequirements(): RecipeRequirements {
     return this.state.recipeRequirements;
   }
 
-  /** Interner Getter für etwas kürzere Notation */
   private get ingredients(): UiIngredient[] {
     return this.state.recipeRequirements.ingredients;
   }
@@ -64,6 +55,8 @@ export class GenerateRecipeComponent {
   onDocumentClick(event: MouseEvent): void {
     if (!this.isClickInsideComponent(event)) {
       this.closeAllDropdowns();
+      this.ingredientSuggestions = [];
+      this.inlineSuggestion = '';
     }
   }
 
@@ -78,15 +71,34 @@ export class GenerateRecipeComponent {
   }
 
   onIngredientInputChange(): void {
-    const query = this.ingredientName.trim().toLowerCase();
-    this.ingredientSuggestions = query
-      ? this.filterIngredientSuggestions(query)
-      : [];
+    const query = this.ingredientName;
+    if (!query) {
+      this.ingredientSuggestions = [];
+      this.inlineSuggestion = '';
+      return;
+    }
+    this.ingredientSuggestions = this.ingredientAutocomplete.search(query, 3);
+    this.inlineSuggestion = this.buildInlineSuggestion(query);
   }
+
+  private buildInlineSuggestion(query: string): string {
+    const first = this.ingredientSuggestions[0];
+    if (!first) return '';
+    const normalizedQuery = query.toLowerCase();
+    const normalizedFirst = first.toLowerCase();
+    if (!normalizedFirst.startsWith(normalizedQuery)) {
+      return '';
+    }
+    const completion = first.slice(query.length);
+    if (!completion) return '';
+    return query + completion;
+  }
+  
 
   applySuggestion(suggestion: string): void {
     this.ingredientName = suggestion;
     this.ingredientSuggestions = [];
+    this.inlineSuggestion = '';
   }
 
   onSubmit(form: NgForm): void {
@@ -163,12 +175,6 @@ export class GenerateRecipeComponent {
     event.stopPropagation();
   }
 
-  private filterIngredientSuggestions(query: string): string[] {
-    return this.allIngredientSuggestions.filter((item) =>
-      item.toLowerCase().startsWith(query),
-    );
-  }
-
   private buildIngredientFromForm(): UiIngredient | null {
     const name = this.ingredientName.trim();
     const size = Number(this.servingSize);
@@ -195,6 +201,7 @@ export class GenerateRecipeComponent {
     this.servingSize = this.defaultServingSize;
     this.selectedUnit = this.unitsOfMeasurement[0];
     this.ingredientSuggestions = [];
+    this.inlineSuggestion = '';
     form.resetForm({
       servingSize: this.servingSize,
     });
@@ -214,5 +221,5 @@ export class GenerateRecipeComponent {
 
   private isInvalidIngredient(name: string, size: number): boolean {
     return !name || !size || Number.isNaN(size) || size <= 0;
-  }
+    }
 }

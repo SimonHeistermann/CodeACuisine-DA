@@ -8,7 +8,6 @@ import {
   providedIn: 'root',
 })
 export class StateService {
-  /** Anforderungen, die du aus Ingredients + Preferences aufbaust */
   recipeRequirements: RecipeRequirements = {
     ingredients: [],
     portionsAmount: 2,
@@ -18,20 +17,56 @@ export class StateService {
     dietPreferences: '',
   };
 
-  /** Ergebnisse der letzten AI-Generierung */
   generatedRecipes: GeneratedRecipe[] = [];
 
-  /** Alle Rezepte, die im Cookbook liegen (Firebase) */
   allRecipes: GeneratedRecipe[] = [];
 
-  /** Zentrale Optionen für deine UI (optional, wenn du sie teilen willst) */
   preferencesOptions = {
     times: [
       { value: 'quick', label: 'Quick', description: 'up to 20min' },
       { value: 'medium', label: 'Medium', description: '25–40min' },
       { value: 'complex', label: 'Complex', description: 'over 45min' },
     ],
-    cuisine: ['german', 'italian', 'indian', 'japanese', 'gourmet', 'fusion'],
+    cuisine: [
+      {
+        name: 'german',
+        thumbnail_img: 'img/german.png',
+        header_img: 'img/german_header.png',
+        emoji: '🥨',
+      },
+      {
+        name: 'italian',
+        thumbnail_img: 'img/italian.png',
+        header_img: 'img/italian_header.png',
+        emoji: '🤌',
+      },
+      {
+        name: 'indian',
+        thumbnail_img: 'img/indian.png',
+        header_img: 'img/indian_header.png',
+        emoji: '🍛',
+      },
+      {
+        name: 'japanese',
+        thumbnail_img: 'img/japanese.png',
+        header_img: 'img/japanese_header.png',
+        emoji: '🥢',
+      },
+      {
+        name: 'gourmet',
+        thumbnail_img: 'img/gourmet.png',
+        header_img: 'img/gourmet_header.png',
+        emoji: '✨',
+      },
+      {
+        name: 'fusion',
+        thumbnail_img: 'img/fusion.png',
+        header_img: 'img/fusion_header.png',
+        emoji: '🍢',
+      },
+    ],
     dietPreferences: ['vegetarian', 'vegan', 'keto', 'no preferences'],
   };
+
+  constructor() {}
 }

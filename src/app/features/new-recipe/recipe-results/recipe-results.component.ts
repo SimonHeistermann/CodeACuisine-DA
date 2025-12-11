@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 import {
   GeneratedRecipe,
@@ -16,7 +16,10 @@ import { StateService } from '../../../core/services/state-service/state.service
   styleUrl: './recipe-results.component.scss',
 })
 export class RecipeResultsComponent {
-  constructor(private readonly state: StateService) {}
+  constructor(
+    private readonly state: StateService,
+    private readonly router: Router,
+  ) {}
 
   get recipes(): GeneratedRecipe[] {
     return this.state.generatedRecipes ?? [];
@@ -31,5 +34,14 @@ export class RecipeResultsComponent {
       !!this.requirements.dietPreferences &&
       this.requirements.dietPreferences !== 'no preferences'
     );
+  }
+
+  onViewRecipe(recipe: GeneratedRecipe): void {
+    if (!recipe.id) {
+      console.warn('Recipe has no Firestore ID – cannot navigate.', recipe);
+      return;
+    }
+
+    this.router.navigate(['/recipe-results', recipe.id]);
   }
 }

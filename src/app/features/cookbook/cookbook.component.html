@@ -1,1 +1,152 @@
-<p>cookbook works!</p>
+<main class="cookbook-page">
+    <div class="cookbook-page__inner">
+      <!-- Header mit Logo -->
+      <header class="cookbook-page__header">
+        <a [routerLink]="['/']">
+          <img
+            src="img/logo_green.png"
+            alt="Code à Cuisine logo"
+            class="cookbook-page__logo"
+          />
+        </a>
+      </header>
+  
+      <!-- Back-Link -->
+      <a
+        class="cookbook-page__back-link"
+        [routerLink]="['/recipe-results']"
+      >
+        <span class="cookbook-page__back-icon-wrapper">
+          <img
+            src="img/arrow_green_left.png"
+            alt="back"
+            class="cookbook-page__back-icon"
+          />
+        </span>
+        <span class="cookbook-page__back-text">Back</span>
+      </a>
+  
+      <!-- ============ Header-Card: Cookbook + Most liked ============ -->
+      <section class="cookbook-header">
+        <div class="cookbook-header__intro">
+          <h1 class="cookbook-header__title">Cookbook</h1>
+          <p class="cookbook-header__text">
+            From quick bites to gourmet delights, explore them all in our
+            ultimate cookbook and get inspired for your next culinary adventure.
+          </p>
+        </div>
+  
+        <div class="cookbook-header__top">
+          <div class="cookbook-top__headline">
+            <span class="cookbook-top__title">Most liked recipes</span>
+            <img
+              src="img/heart_green.png"
+              alt="most liked"
+              class="cookbook-top__icon"
+            />
+          </div>
+  
+          <div class="cookbook-top__list-wrapper">
+            <div
+              class="cookbook-top__list"
+              [class.cookbook-top__list--empty]="!hasTopLikedRecipes && !isLoadingTopRecipes"
+            >
+              @if (isLoadingTopRecipes) {
+                <div class="cookbook-top__empty">
+                  Loading recipes…
+                </div>
+              } @else if (hasTopLikedRecipes) {
+                @for (recipe of topLikedRecipes; track recipe.recipeSignature ?? recipe.title) {
+                  <button
+                    type="button"
+                    class="cookbook-top__card"
+                    (click)="onTopRecipeClick(recipe)"
+                  >
+                    <div class="cookbook-top__card-left">
+                        <div class="cookbook-top__card-meta">
+                            <span class="cookbook-top__meta-icon-wrapper">
+                              <img
+                                src="img/clock_green.png"
+                                alt="cooking time"
+                                class="cookbook-top__meta-icon"
+                              />
+                            </span>
+                            <span class="cookbook-top__meta-text">
+                              Cooking time:
+                              {{ recipe.cookingTime }}
+                            </span>
+                          </div>
+        
+                          <p class="cookbook-top__card-title">
+                            {{ recipe.title }}
+                          </p>
+                    </div>
+  
+                    <div class="cookbook-top__likes">
+                      <span class="cookbook-top__likes-badge">
+                        <img
+                          src="img/heart_dark.png"
+                          alt="likes"
+                          class="cookbook-top__likes-icon"
+                        />
+                        {{ getLikes(recipe) }}
+                      </span>
+                    </div>
+                  </button>
+                }
+              } @else {
+                <div class="cookbook-top__empty">
+                  No recipes with likes yet. Start generating and loving some meals!
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      <!-- ============ Cuisine Grid ============ -->
+      <section class="cookbook-grid">
+        @for (cuisine of cuisines; track cuisine.name) {
+          <article class="cookbook-grid__item">
+            <button
+              type="button"
+              class="cookbook-grid__content"
+              (click)="onCuisineClick(cuisine.name)"
+            >
+              <h2 class="cookbook-grid__title">
+                {{ cuisine.name | titlecase }} cuisine
+                <span class="cookbook-grid__emoji">
+                  {{ cuisine.emoji }}
+                </span>
+              </h2>
+  
+              <div class="cookbook-grid__image-wrapper">
+                <img
+                  [src]="cuisine.thumbnail_img"
+                  [alt]="cuisine.name + ' cuisine'"
+                  class="cookbook-grid__image"
+                />
+              </div>
+            </button>
+          </article>
+        }
+      </section>
+  
+      <!-- ============ Footer CTA ============ -->
+      <a
+        class="cookbook-page__generate-new"
+        [routerLink]="['/generate-recipe']"
+      >
+        <span class="cookbook-page__generate-text">
+          Generate new recipe
+        </span>
+        <span class="cookbook-page__generate-icon-wrapper">
+          <img
+            src="img/arrow_green_right.png"
+            alt="to generate recipe"
+            class="cookbook-page__generate-icon"
+          />
+        </span>
+      </a>
+    </div>
+</main>  

@@ -29,12 +29,10 @@ export class PreferencesComponent {
     private readonly toastService: ToastService,
   ) {}
 
-  /** Optionen kommen zentral aus dem StateService */
   get preferences() {
     return this.state.preferencesOptions;
   }
 
-  /** Kurz-Getter, damit das Template lesbar bleibt */
   get recipeRequirements(): RecipeRequirements {
     return this.state.recipeRequirements;
   }
@@ -74,6 +72,8 @@ export class PreferencesComponent {
   ): void {
     this.recipeRequirements[key] = value;
   }
+
+  // =================== private Helper ===================
 
   private hasNoIngredients(): boolean {
     return this.recipeRequirements.ingredients.length === 0;

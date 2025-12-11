@@ -9,18 +9,24 @@
 .generate-page {
   background-color: $bg-color;
   min-height: 100vh;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .generate-page__inner {
   max-width: 1440px;
   min-height: 100vh;
-  margin: 0 auto;
+  margin-inline: auto;
   padding: 40px 80px;
   padding-top: 0;
   display: flex;
   flex-direction: column;
   color: $primary-green;
   font-family: fonts.$font-family-quicksand;
+  width: 100%;
+  overflow: hidden;
 }
 
 .generate-page__header {
@@ -41,6 +47,7 @@
   flex-direction: column;
   align-items: center;
   gap: 40px;
+  overflow: hidden;
 }
 
 .generate__intro {
@@ -82,7 +89,7 @@
 }
 
 .generate__card--input {
-    min-height: 176px;
+    min-height: 240px;
 
     .generate__card-grid {
       display: grid;
@@ -109,19 +116,38 @@
 
 .generate__ingredient-input-wrapper {
   position: relative;
+  width: 100%;
+  height: auto;
+  padding-top: 36px;
 }
 
+
 .generate__ingredient-input {
-    width: 100%;
-    padding: 10px 24px;
-    height: 36px;
-    border-radius: 999px;
-    border: none;
-    background-color: $background-cream;
-    font-size: 16px;
-    font-family: fonts.$font-family-quicksand;
-    color: $dark-green;
-    outline: none;
+  width: 100%;
+  padding: 10px 24px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  font-size: 16px;
+  font-family: fonts.$font-family-quicksand;
+  color: $dark-green;
+  outline: none;
+}
+
+.generate__ingredient-input--ghost {
+  position: absolute;
+  inset: 0;
+  background-color: $background-cream;
+  color: rgba($primary-green, 0.4);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.generate__ingredient-input--real {
+  position: absolute;
+  inset: 0;
+  background-color: transparent;
+  z-index: 2;
 }
 
 .generate__ingredient-input::placeholder {
@@ -129,17 +155,15 @@
 }
 
 .generate__suggestions {
-  position: absolute;
-  left: 24px;
-  top: 100%;
-  margin-top: 8px;
+  position: static;
+  margin: 8px 0 0;
+  padding: 0 24px;
   list-style: none;
-  padding: 0;
-  margin-bottom: 0;
+  width: 100%;
 }
 
 .generate__suggestion-item {
-  font-size: 20px;
+  font-size: 16px;
   padding: 2px 0;
   cursor: pointer;
 }
@@ -295,21 +319,39 @@
 
 .generate__list-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 2px 4px;
   border-radius: 999px;
   height: 30px;
-}
-
-.generate__list-item:hover {
-  background-color: $light-cream;
+  gap: 16px;               
 }
 
 .generate__list-main {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex: 1 1 auto;          
+  min-width: 0;            
+}
+
+.generate__list-name {
+  font-size: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;           
+  min-width: 0;             
+}
+
+.generate__list-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;           
+}
+
+.generate__list-item:hover {
+  background-color: $light-cream;
 }
 
 .generate__list-bullet {
@@ -318,11 +360,7 @@
 }
 
 .generate__list-amount {
-  min-width: 80px;
-  font-size: 20px;
-}
-
-.generate__list-name {
+  min-width: 58px;
   font-size: 20px;
 }
 
@@ -335,12 +373,6 @@
   color: $primary-green;
   padding: 2px 0;
   min-width: 160px;
-}
-
-.generate__list-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
 }
 
 .generate__icon-btn {
@@ -359,4 +391,158 @@
   @include mixins.button($primary-green, $white);
   align-self: flex-end;
   margin-top: 32px;
+}
+
+@media (max-width: 920px) {
+  .generate-page__header {
+    height: 52px;
+    padding: 12px 0px;
+  }
+
+  .generate-page__logo {
+    height: 32px;
+  }
+
+  .generate__intro {
+    text-align: left;
+  }
+
+  .generate__title {
+    font-size: 32px;
+    line-height: 100%;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+
+  .generate__subtitle {
+    font-size: 18px;
+    line-height: 100%;
+    font-weight: 500;
+  }
+
+  .generate__cards {
+    margin-top: 0px;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .generate__card {
+    min-height: auto;
+    width: 100%;
+
+  }
+
+  .generate__card--input {
+    .generate__card-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
+
+  .generate__field-group {
+    margin: 0;
+    width: 100%;
+  }
+
+  .generate__field-group--serving {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .generate__ingredient-input-wrapper {
+    width: 100%;
+  }
+
+  .generate__field-label {
+    margin-bottom: 11px;
+    font-size: 18px;
+    line-height: 100%;
+  }
+
+  .generate__list-title {
+    margin-bottom: 24px;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  .generate__list-amount {
+    font-size: 18px;
+    min-width: 49px;
+  }
+
+  .generate__list-name {
+    font-size: 16px;
+    line-height: 80%;
+  }
+
+  .generate__list-actions {
+    gap: 12px;
+  }
+
+  .generate__icon-btn {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+
+    img {
+      width: 19px;
+      height: 19px;
+    }
+  }
+
+  .generate__list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .generate__list-item {
+    width: 100%;
+  }
+
+  .generate__next-btn {
+    align-self: center;
+    margin-top: 0px;
+    height: 52px;
+    padding: 4px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 100%;
+  }
+
+  .generate__list-item--edit {
+    height: 70px;
+    align-items: flex-start;
+  }
+
+  .generate__list-main-edit {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .generate__list-item--edit:hover {
+    background-color: transparent !important;
+  }
+
+  .generate__list-name-input {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+
+  .generate__pill-input--number {
+    padding: 3px 15px;
+    width: 61px;
+  }
+}
+
+@media (max-width: 620px) {
+  .generate-page__inner {
+    padding: 0px 16px 32px 16px;
+  }
 }

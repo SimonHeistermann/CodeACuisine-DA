@@ -1,0 +1,183 @@
+<main class="recipes-list-page">
+    <div class="recipes-list-page__inner">
+      <!-- Header mit Logo & CTA -->
+      <header class="recipes-list-page__header">
+        <a [routerLink]="['/']">
+          <img
+            src="img/logo_green.png"
+            alt="Code à Cuisine logo"
+            class="recipes-list-page__logo"
+          />
+        </a>
+        <a
+            class="recipes-list-page__back-link"
+            [routerLink]="['/cookbook']"
+        >
+            <span class="recipes-list-page__back-icon-wrapper">
+                <img
+                    src="img/arrow_green_left.png"
+                    alt="back to cookbook"
+                    class="recipes-list-page__back-icon"
+                />
+            </span>
+            <span class="recipes-list-page__back-text">Cookbook</span>
+        </a>
+      </header>
+
+      <div class="recipes-list-page__header-2">
+        <a
+          class="recipes-list-page__cta-btn"
+          [routerLink]="['/generate-recipe']"
+        >
+          Generate a recipe
+        </a>
+      </div>
+  
+      <!-- Header-Banner mit Cuisine -->
+      <section class="recipes-list-header">
+        @if (cuisineHeaderImg; as headerImg) {
+          <div class="recipes-list-header__image-wrapper">
+            <img
+              [src]="headerImg"
+              [alt]="(cuisineDisplayName | titlecase) + ' cuisine header'"
+              class="recipes-list-header__image"
+            />
+          </div>
+        } @else {
+          <div class="recipes-list-header__fallback">
+            <h1 class="recipes-list-header__title">
+              {{ cuisineDisplayName | titlecase }} cuisine
+            </h1>
+          </div>
+        }
+      </section>
+  
+      <!-- Rezepte-Liste -->
+      <section class="recipes-list">
+        @if (isLoading) {
+          <div class="recipes-list__empty">
+            Loading recipes…
+          </div>
+        } @else if (paginatedRecipes.length === 0) {
+          <div class="recipes-list__empty">
+            No recipes for this cuisine yet. Generate one and give it a heart!
+          </div>
+        } @else {
+          <ol class="recipes-list__items">
+            @for (
+              recipe of paginatedRecipes;
+              track trackByRecipe($index, recipe);
+              let i = $index
+            ) {
+              <li>
+                <button
+                  type="button"
+                  class="recipes-list-item"
+                  (click)="openRecipe(recipe)"
+                >
+                  <div class="recipes-list-item__left">
+                    <span class="recipes-list-item__index">
+                      {{ indexOffset + i + 1 }}.
+                    </span>
+  
+                    <div class="recipes-list-item__content">
+                      <div class="recipes-list-item__meta">
+                        <img
+                          src="img/clock_green.png"
+                          alt="cooking time"
+                          class="recipes-list-item__meta-icon"
+                        />
+                        <span class="recipes-list-item__meta-text">
+                          Cooking time: {{ recipe.cookingTime }}
+                        </span>
+                      </div>
+  
+                      <h2 class="recipes-list-item__title">
+                        {{ recipe.title }}
+                      </h2>
+                    </div>
+                  </div>
+  
+                  <div class="recipes-list-item__tags">
+                    @if (hasDietPreference(recipe)) {
+                      <span class="recipes-list-item__tag">
+                        {{
+                          recipe.preferences!.dietPreferences
+                            | titlecase
+                        }}
+                      </span>
+                    }
+  
+                    @if (recipe.preferences.cookingTime) {
+                      <span class="recipes-list-item__tag">
+                        {{
+                          recipe.preferences.cookingTime
+                            | titlecase
+                        }}
+                      </span>
+                    }
+  
+                    <span
+                      class="recipes-list-item__tag recipes-list-item__tag--icon"
+                    >
+                      <img
+                        src="img/heart_dark.png"
+                        alt="likes"
+                        class="recipes-list-item__tag-heart-icon"
+                      />
+                      {{ recipe.likes ?? 0 }}
+                    </span>
+                  </div>
+                </button>
+              </li>
+            }
+          </ol>
+  
+          <!-- Pagination -->
+          @if (totalPages > 1) {
+            <nav
+              class="recipes-list__pagination"
+              aria-label="Recipe pages"
+            >
+              <button
+                type="button"
+                class="recipes-list__pagination-arrow"
+                [disabled]="currentPage === 1"
+                (click)="goToPreviousPage()"
+              >
+                &lt;
+              </button>
+  
+              @for (item of pageItems; track $index) {
+                @if (item === 'ellipsis') {
+                  <span class="recipes-list__pagination-ellipsis">
+                    …
+                  </span>
+                } @else {
+                  <button
+                    type="button"
+                    class="recipes-list__pagination-page"
+                    [class.recipes-list__pagination-page--active]="
+                      item === currentPage
+                    "
+                    (click)="goToPage(item)"
+                  >
+                    {{ item }}
+                  </button>
+                }
+              }
+  
+              <button
+                type="button"
+                class="recipes-list__pagination-arrow"
+                [disabled]="currentPage === totalPages"
+                (click)="goToNextPage()"
+              >
+                &gt;
+              </button>
+            </nav>
+          }
+        }
+      </section>
+    </div>
+</main>  

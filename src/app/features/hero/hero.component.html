@@ -2,7 +2,7 @@
   <div class="hero__inner">
     <header class="hero__header">
       <a [routerLink]="['/']">
-        <img src="img/logo_off_white.png" alt="logo" class="hero__logo" />
+        <img src="img/logo_off_white.png" alt="Code à Cuisine logo" class="hero__logo" />
       </a>
     </header>
 
@@ -22,7 +22,7 @@
 
       <div class="hero__bottom-row">
         <span class="hero__bottom-label">Hungry for inspiration?</span>
-        <a href="#" class="hero__bottom-link">
+        <a [routerLink]="['/cookbook']" class="hero__bottom-link">
           <span class="hero__bottom-link-text">Go to cookbook</span>
           <img
             class="hero__bottom-arrow"
@@ -31,12 +31,18 @@
           />
         </a>
       </div>
-
-      <img
+    </section>
+    <img
         class="hero__visuals"
         src="img/hero_visuals.png"
         alt="dishes"
+        aria-hidden="true"
       />
-    </section>
+      <img
+        class="hero__visuals-mobile"
+        src="img/hero_visuals_mobile.png"
+        alt="dishes"
+        aria-hidden="true"
+      />
   </div>
 </main>

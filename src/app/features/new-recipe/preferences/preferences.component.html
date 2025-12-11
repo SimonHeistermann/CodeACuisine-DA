@@ -163,18 +163,18 @@
             </div>
 
             <div class="preferences__chip-row">
-              @for (cuisine of preferences.cuisine; track cuisine) {
+              @for (cuisine of preferences.cuisine; track cuisine.name) {
                 <button
                   type="button"
                   class="preferences__chip"
                   [ngClass]="{
                     'preferences__chip--active':
-                      recipeRequirements.cuisine === cuisine
+                      recipeRequirements.cuisine === cuisine.name
                   }"
-                  (click)="selectPreference('cuisine', cuisine)"
+                  (click)="selectPreference('cuisine', cuisine.name)"
                 >
                   <span class="preferences__chip-label">
-                    {{ cuisine | titlecase }}
+                    {{ cuisine.emoji }} {{ cuisine.name | titlecase }}
                   </span>
                 </button>
               }
@@ -221,8 +221,7 @@
           [ngClass]="{
             'preferences__submit-btn--disabled': !canGenerateRecipe
           }"
-          (click)="onGenerateRecipe()
-          "
+          (click)="onGenerateRecipe()"
         >
           Generate a recipe
         </button>

@@ -12,16 +12,18 @@
 
     <a
       class="recipe-detail-page__back-link"
-      [routerLink]="['/recipe-results']"
+      [routerLink]="['../']"
     >
       <span class="recipe-detail-page__back-icon-wrapper">
         <img
           src="img/arrow_green_left.png"
-          alt="back to results"
+          alt="back"
           class="recipe-detail-page__back-icon"
         />
       </span>
-      <span class="recipe-detail-page__back-text">Recipe results</span>
+      <span class="recipe-detail-page__back-text">
+        Back
+      </span>
     </a>
 
     @if (selectedRecipe) {
@@ -317,7 +319,7 @@
       </section>
     } @else {
       <p class="recipe-detail-page__empty">
-        No recipe selected. Please go back to the recipe results.
+        No recipe selected. Please go back to the previous page.
       </p>
     }
   </div>

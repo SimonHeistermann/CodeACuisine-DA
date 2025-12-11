@@ -31,18 +31,25 @@
               <label class="generate__field-label" for="ingredient">
                 Ingredient
               </label>
-
               <div class="generate__ingredient-input-wrapper">
+                <input
+                  type="text"
+                  class="generate__ingredient-input generate__ingredient-input--ghost"
+                  [value]="inlineSuggestion"
+                  tabindex="-1"
+                  aria-hidden="true"
+                />
+              
                 <input
                   id="ingredient"
                   name="ingredient"
                   type="text"
-                  class="generate__ingredient-input"
+                  class="generate__ingredient-input generate__ingredient-input--real"
                   [(ngModel)]="ingredientName"
                   (input)="onIngredientInputChange()"
                   autocomplete="off"
                 />
-
+              
                 @if (ingredientSuggestions.length > 0) {
                   <ul class="generate__suggestions">
                     @for (suggestion of ingredientSuggestions; track suggestion) {
@@ -55,7 +62,7 @@
                     }
                   </ul>
                 }
-              </div>
+              </div>              
             </div>
 
             <div class="generate__field-group generate__field-group--serving">
@@ -123,14 +130,13 @@
           } @else {
             <ul class="generate__list">
               @for (ingredient of recipeRequirements.ingredients; track $index) {
-                <li
-                  class="generate__list-item"
-                  (dblclick)="toggleEditModeForIngredient(ingredient)"
-                >
-                  <div class="generate__list-main">
-                    <span class="generate__list-bullet">•</span>
-
-                    @if (!ingredient.isEditMode) {
+                @if (!ingredient.isEditMode) {
+                  <li
+                    class="generate__list-item"
+                    (dblclick)="toggleEditModeForIngredient(ingredient)"
+                  >
+                    <div class="generate__list-main">
+                      <span class="generate__list-bullet">•</span>
                       <span class="generate__list-amount">
                         {{ ingredient.servingSize
                         }}{{ ingredient.unit.abbreviation }}
@@ -138,8 +144,43 @@
                       <span class="generate__list-name">
                         {{ ingredient.ingredient }}
                       </span>
-                    } @else {
+                    </div>
+                    <div class="generate__list-actions">
+                      <button
+                        type="button"
+                        class="generate__icon-btn"
+                        (click)="toggleEditModeForIngredient(ingredient)"
+                      >
+                        <img
+                          [src]="
+                            ingredient.isEditMode
+                              ? 'img/check_green.png'
+                              : 'img/edit_green.png'
+                          "
+                          alt="edit ingredient"
+                        />
+                      </button>
+  
+                      <button
+                        type="button"
+                        class="generate__icon-btn"
+                        (click)="deleteIngredient(ingredient)"
+                      >
+                        <img
+                          src="img/delete_green.png"
+                          alt="delete ingredient"
+                        />
+                      </button>
+                    </div>
+                </li>
+                } @else {
+                  <li
+                  class="generate__list-item generate__list-item--edit"
+                  (dblclick)="toggleEditModeForIngredient(ingredient)"
+                >
+                  <div class="generate__list-main generate__list-main-edit">
                       <div class="generate__pill-input-group">
+                        <span class="generate__list-bullet">•</span>
                         <input
                           type="number"
                           min="1"
@@ -188,9 +229,7 @@
                         name="editIngredientName-{{ $index }}"
                         (keyup.enter)="onEditEnter(ingredient, $event)"
                       />
-                    }
                   </div>
-
                   <div class="generate__list-actions">
                     <button
                       type="button"
@@ -219,6 +258,7 @@
                     </button>
                   </div>
                 </li>
+                }
               }
             </ul>
           }

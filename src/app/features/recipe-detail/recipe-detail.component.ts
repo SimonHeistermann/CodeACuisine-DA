@@ -36,23 +36,56 @@ export class RecipeDetailComponent implements OnInit {
   // ============ Lifecycle ============
 
   ngOnInit(): void {
-    this.initRecipeFromRoute();
+    const id = this.activatedRoute.snapshot.paramMap.get('id');
+    if (!id) return;
+
+    this.initRecipeById(id);
+  }
+
+  /**
+   * Rezept über Firestore-ID initialisieren:
+   * 1. aus State (generatedRecipes oder allRecipes)
+   * 2. Fallback: Firestore getRecipeById
+   */
+  private async initRecipeById(id: string): Promise<void> {
+    const fromGenerated =
+      this.state.generatedRecipes?.find((r) => r.id === id) ?? null;
+
+    const fromCookbook =
+      this.state.allRecipes?.find((r) => r.id === id) ?? null;
+
+    this.selectedRecipe = fromGenerated ?? fromCookbook ?? null;
+
+    if (!this.selectedRecipe) {
+      try {
+        const fromBackend = await this.firestoreRecipes.getRecipeById(id);
+        if (!fromBackend) {
+          console.warn('Recipe not found for id:', id);
+          return;
+        }
+        this.selectedRecipe = fromBackend;
+      } catch (error) {
+        console.error('Error loading recipe by id:', error);
+        return;
+      }
+    }
+
+    this.afterRecipeLoaded();
+  }
+
+  private afterRecipeLoaded(): void {
+    if (!this.selectedRecipe) return;
+
+    this.chefIndexes = this.buildChefIndexes(
+      this.selectedRecipe.cooksAmount,
+    );
     this.initFavoriteState();
   }
 
-  private initRecipeFromRoute(): void {
-    const routeIndex = this.activatedRoute.snapshot.paramMap.get('id');
-    if (routeIndex === null) return;
-
-    const index = Number(routeIndex);
-    if (Number.isNaN(index)) return;
-
-    const recipes = this.state.generatedRecipes ?? [];
-    this.selectedRecipe = recipes[index] ?? null;
-
-    const cooks = this.selectedRecipe?.cooksAmount ?? 0;
+  private buildChefIndexes(cooksAmount?: number): number[] {
+    const cooks = cooksAmount ?? 0;
     const limited = Math.min(cooks, this.MAX_CHEFS);
-    this.chefIndexes = Array.from({ length: limited }, (_, i) => i + 1);
+    return Array.from({ length: limited }, (_, i) => i + 1);
   }
 
   private initFavoriteState(): void {
@@ -144,16 +177,24 @@ export class RecipeDetailComponent implements OnInit {
         nextState,
       );
 
-      this.isFavorite = nextState;
-      this.isFavoriteHovered = false;
-      this.updateSelectedRecipeLikes(likes);
-      this.saveFavoriteToStorage(
-        this.selectedRecipe.recipeSignature,
-        nextState,
-      );
+      this.applyFavoriteState(nextState, likes);
     } catch (error) {
       console.error('Error updating favorite:', error);
     }
+  }
+
+  private applyFavoriteState(isFavorite: boolean, likes: number): void {
+    if (!this.selectedRecipe || !this.selectedRecipe.recipeSignature) {
+      return;
+    }
+
+    this.isFavorite = isFavorite;
+    this.isFavoriteHovered = false;
+    this.updateSelectedRecipeLikes(likes);
+    this.saveFavoriteToStorage(
+      this.selectedRecipe.recipeSignature,
+      isFavorite,
+    );
   }
 
   onFavoriteMouseEnter(): void {
@@ -168,27 +209,37 @@ export class RecipeDetailComponent implements OnInit {
 
   private updateSelectedRecipeLikes(likes: number): void {
     if (!this.selectedRecipe) return;
+
     this.selectedRecipe = {
       ...this.selectedRecipe,
       likes,
     };
   }
 
-  private syncLikesFromBackend(recipe: GeneratedRecipe): void {
-    this.firestoreRecipes
-      .ensureRecipeInCookbook(recipe)
-      .then((updated) => {
-        if (!this.selectedRecipe) return;
-
-        this.selectedRecipe = {
-          ...this.selectedRecipe,
-          likes: updated.likes ?? 0,
-          recipeSignature: updated.recipeSignature,
-        };
-      })
-      .catch((error) =>
-        console.error('Error syncing recipe from Firestore:', error),
+  private async syncLikesFromBackend(
+    recipe: GeneratedRecipe,
+  ): Promise<void> {
+    try {
+      const updated = await this.firestoreRecipes.ensureRecipeInCookbook(
+        recipe,
       );
+      this.applyBackendRecipeUpdate(updated);
+    } catch (error) {
+      console.error('Error syncing recipe from Firestore:', error);
+    }
+  }
+
+  private applyBackendRecipeUpdate(
+    updated: GeneratedRecipe,
+  ): void {
+    if (!this.selectedRecipe) return;
+
+    this.selectedRecipe = {
+      ...this.selectedRecipe,
+      likes: updated.likes ?? 0,
+      recipeSignature: updated.recipeSignature,
+      id: updated.id ?? this.selectedRecipe.id,
+    };
   }
 
   // ============ LocalStorage ============
@@ -209,23 +260,35 @@ export class RecipeDetailComponent implements OnInit {
     signature: string,
     isFavorite: boolean,
   ): void {
+    const data = this.loadFavoritesMap();
+    this.updateFavoritesMap(data, signature, isFavorite);
+    this.persistFavoritesMap(data);
+  }
+
+  private loadFavoritesMap(): Record<string, boolean> {
     const raw = localStorage.getItem(this.FAVORITES_STORAGE_KEY);
-    let data: Record<string, boolean> = {};
+    if (!raw) return {};
 
-    if (raw) {
-      try {
-        data = JSON.parse(raw) as Record<string, boolean>;
-      } catch {
-        data = {};
-      }
+    try {
+      return JSON.parse(raw) as Record<string, boolean>;
+    } catch {
+      return {};
     }
+  }
 
+  private updateFavoritesMap(
+    data: Record<string, boolean>,
+    signature: string,
+    isFavorite: boolean,
+  ): void {
     if (isFavorite) {
       data[signature] = true;
     } else {
       delete data[signature];
     }
+  }
 
+  private persistFavoritesMap(data: Record<string, boolean>): void {
     localStorage.setItem(
       this.FAVORITES_STORAGE_KEY,
       JSON.stringify(data),

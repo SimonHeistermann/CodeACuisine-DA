@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import {
   Firestore,
   collection,
-  collectionData,
   addDoc,
   query,
   where,
@@ -11,8 +10,9 @@ import {
   doc,
   updateDoc,
   increment,
+  getDoc,
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {
@@ -82,7 +82,6 @@ export class FirestoreRecipeService {
     const time = (prefs.cookingTime ?? '').toLowerCase();
     const diet = (prefs.dietPreferences ?? '').toLowerCase();
     const cooks = String(recipe.cooksAmount ?? 0);
-
     const ingredientsKey = this.buildIngredientsKey(recipe);
 
     return [title, cuisine, time, diet, cooks, ingredientsKey].join(
@@ -108,21 +107,39 @@ export class FirestoreRecipeService {
     };
   }
 
+  /**
+   * Legt ein neues Rezept-Dokument an und gibt die Firestore-ID zurück.
+   */
   private async createRecipeDoc(
     recipe: GeneratedRecipe,
     signature: string,
     likes: number,
     options?: { isSeed?: boolean },
-  ): Promise<void> {
-    const payload: any = {
+  ): Promise<string> {
+    const payload: any = this.buildRecipePayload(
+      recipe,
+      signature,
+      likes,
+      options,
+    );
+
+    const docRef = await addDoc(this.recipesCollection(), payload);
+    return docRef.id;
+  }
+
+  private buildRecipePayload(
+    recipe: GeneratedRecipe,
+    signature: string,
+    likes: number,
+    options?: { isSeed?: boolean },
+  ): any {
+    return {
       ...recipe,
       recipeSignature: signature,
       likes,
       isSeedRecipe: options?.isSeed ?? false,
       createdAt: Timestamp.now(),
     };
-
-    await addDoc(this.recipesCollection(), payload);
   }
 
   // =====================================================
@@ -132,7 +149,7 @@ export class FirestoreRecipeService {
   /**
    * Nimmt die frisch generierten Rezepte,
    * sorgt für Eintrag in Firestore
-   * und gibt sie mit korrektem likes-Wert zurück.
+   * und gibt sie mit korrektem likes-Wert & Firestore-ID zurück.
    */
   async syncGeneratedRecipes(
     recipes: GeneratedRecipe[],
@@ -151,8 +168,8 @@ export class FirestoreRecipeService {
 
   /**
    * Sorgt dafür, dass das Rezept in Firestore existiert.
-   * Falls schon vorhanden → likes aus DB übernehmen.
-   * Falls neu → anlegen mit likes (Default 0).
+   * Falls schon vorhanden → likes & id aus DB übernehmen.
+   * Falls neu → anlegen mit likes (Default 0) und Firestore-ID zurückgeben.
    */
   async ensureRecipeInCookbook(
     recipe: GeneratedRecipe,
@@ -162,21 +179,35 @@ export class FirestoreRecipeService {
     const existing = await this.findBySignature(signature);
 
     if (existing) {
-      const likes = existing.likes ?? 0;
-      return {
-        ...recipe,
-        id: existing.id,
-        recipeSignature: signature,
-        likes,
-      };
+      return this.mergeExistingRecipe(recipe, existing, signature);
     }
 
     const likes = recipe.likes ?? 0;
-
-    await this.createRecipeDoc(recipe, signature, likes, options);
+    const docId = await this.createRecipeDoc(
+      recipe,
+      signature,
+      likes,
+      options,
+    );
 
     return {
       ...recipe,
+      id: docId,
+      recipeSignature: signature,
+      likes,
+    };
+  }
+
+  private mergeExistingRecipe(
+    recipe: GeneratedRecipe,
+    existing: GeneratedRecipe & { id: string },
+    signature: string,
+  ): GeneratedRecipe {
+    const likes = existing.likes ?? 0;
+
+    return {
+      ...recipe,
+      id: existing.id,
       recipeSignature: signature,
       likes,
     };
@@ -199,28 +230,74 @@ export class FirestoreRecipeService {
   ): Promise<number> {
     const signature = this.getOrCreateSignature(recipe);
     const existing = await this.findBySignature(signature);
-    const delta = isFavorite ? 1 : -1;
+    const delta = this.getLikesDelta(isFavorite);
 
     if (!existing) {
-      const likes = isFavorite ? 1 : 0;
-      await this.createRecipeDoc(recipe, signature, likes, {
-        isSeed: false,
-      });
-      return likes;
+      return this.handleNewLikedRecipe(recipe, signature, isFavorite);
     }
 
-    const docRef = doc(
-      this.firestore,
-      this.collectionName,
-      existing.id,
-    );
-
+    const docRef = this.buildDocRef(existing.id);
     const currentLikes = existing.likes ?? 0;
-    const newLikes = Math.max(currentLikes + delta, 0);
+    const newLikes = this.computeNewLikes(currentLikes, delta);
 
     await updateDoc(docRef, { likes: increment(delta) });
 
     return newLikes;
+  }
+
+  private getLikesDelta(isFavorite: boolean): number {
+    return isFavorite ? 1 : -1;
+  }
+
+  private computeNewLikes(
+    currentLikes: number,
+    delta: number,
+  ): number {
+    return Math.max(currentLikes + delta, 0);
+  }
+
+  private buildDocRef(id: string) {
+    return doc(this.firestore, this.collectionName, id);
+  }
+
+  private async handleNewLikedRecipe(
+    recipe: GeneratedRecipe,
+    signature: string,
+    isFavorite: boolean,
+  ): Promise<number> {
+    const likes = isFavorite ? 1 : 0;
+
+    const docId = await this.createRecipeDoc(
+      recipe,
+      signature,
+      likes,
+      {
+        isSeed: false,
+      },
+    );
+
+    // sicherheitshalber id im übergebenen Objekt setzen, falls du es weiter nutzt
+    recipe.id = docId;
+
+    return likes;
+  }
+
+  // =====================================================
+  // Einzelnes Rezept laden
+  // =====================================================
+
+  async getRecipeById(id: string): Promise<GeneratedRecipe | null> {
+    const docRef = this.buildDocRef(id);
+    const snap = await getDoc(docRef);
+
+    if (!snap.exists()) {
+      return null;
+    }
+
+    return {
+      id: snap.id,
+      ...(snap.data() as GeneratedRecipe),
+    };
   }
 
   // =====================================================
@@ -234,18 +311,29 @@ export class FirestoreRecipeService {
    */
   loadCookbook(cuisine?: string): Observable<GeneratedRecipe[]> {
     const colRef = this.recipesCollection();
-
-    const qRef = cuisine
+    const ref = cuisine
       ? query(colRef, where('preferences.cuisine', '==', cuisine))
       : colRef;
 
-    return collectionData(qRef, { idField: 'id' }).pipe(
-      map((docs) => docs as GeneratedRecipe[]),
-      map((recipes) => {
-        this.state.allRecipes = recipes;
-        return recipes;
-      }),
+    return from(getDocs(ref)).pipe(
+      map((snap) =>
+        snap.docs.map(
+          (docSnap) =>
+            ({
+              id: docSnap.id,
+              ...(docSnap.data() as GeneratedRecipe),
+            }) as GeneratedRecipe,
+        ),
+      ),
+      map((recipes) => this.updateStateWithRecipes(recipes)),
     );
+  }
+
+  private updateStateWithRecipes(
+    recipes: GeneratedRecipe[],
+  ): GeneratedRecipe[] {
+    this.state.allRecipes = recipes;
+    return recipes;
   }
 
   /**
@@ -255,8 +343,16 @@ export class FirestoreRecipeService {
     const colRef = this.recipesCollection();
     const qRef = query(colRef, where('isSeedRecipe', '==', true));
 
-    return collectionData(qRef, { idField: 'id' }).pipe(
-      map((docs) => docs as GeneratedRecipe[]),
+    return from(getDocs(qRef)).pipe(
+      map((snap) =>
+        snap.docs.map(
+          (docSnap) =>
+            ({
+              id: docSnap.id,
+              ...(docSnap.data() as GeneratedRecipe),
+            }) as GeneratedRecipe,
+        ),
+      ),
     );
   }
 }

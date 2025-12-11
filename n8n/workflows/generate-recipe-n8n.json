@@ -10,8 +10,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -432,
-        -96
+        -480,
+        -112
       ],
       "id": "1e800dc9-88ca-405f-8208-e7c3f7fa3278",
       "name": "Webhook",
@@ -47,7 +47,7 @@
     },
     {
       "parameters": {
-        "jsCode": "let raw = $json.output ?? $json.result ?? $json;\n\nif (typeof raw === 'string') {\n  let text = raw.trim();\n\n  // Entferne Code-Fences: ```json ... ``` oder ``` ... ```\n  if (text.startsWith('```')) {\n    const firstNewline = text.indexOf('\\n');\n    if (firstNewline !== -1) {\n      text = text.slice(firstNewline + 1);\n    }\n\n    const fenceIndex = text.lastIndexOf('```');\n    if (fenceIndex !== -1) {\n      text = text.slice(0, fenceIndex);\n    }\n  }\n\n  text = text.trim();\n\n  try {\n    raw = JSON.parse(text);\n  } catch (e) {\n    throw new Error('LLM did not return valid JSON: ' + e.message);\n  }\n}\n\nif (!Array.isArray(raw)) {\n  throw new Error('Expected an array of recipes from LLM');\n}\n\nif (raw.length > 3) {\n  raw = raw.slice(0, 3);\n}\n\nreturn raw.map((recipe) => ({ json: recipe }));"
+        "jsCode": "let raw = $json.output ?? $json.result ?? $json;\n\nif (typeof raw === 'string') {\n  let text = raw.trim();\n\n  if (text.startsWith('```')) {\n    const firstNewline = text.indexOf('\\n');\n    if (firstNewline !== -1) {\n      text = text.slice(firstNewline + 1);\n    }\n\n    const fenceIndex = text.lastIndexOf('```');\n    if (fenceIndex !== -1) {\n      text = text.slice(0, fenceIndex);\n    }\n  }\n\n  text = text.trim();\n\n  try {\n    raw = JSON.parse(text);\n  } catch (e) {\n    throw new Error('LLM did not return valid JSON: ' + e.message);\n  }\n}\n\nif (!Array.isArray(raw)) {\n  throw new Error('Expected an array of recipes from LLM');\n}\n\nif (raw.length > 3) {\n  raw = raw.slice(0, 3);\n}\n\nconst toNumber = (value, fallback = 0) => {\n  if (typeof value === 'number') return value;\n  if (typeof value === 'string') {\n    const match = value.match(/-?\\d+(\\.\\d+)?/);\n    return match ? parseFloat(match[0]) : fallback;\n  }\n  return fallback;\n};\n\nconst ensureUnit = (unit) => {\n  if (\n    unit &&\n    typeof unit === 'object' &&\n    typeof unit.name === 'string' &&\n    typeof unit.abbreviation === 'string'\n  ) {\n    return unit;\n  }\n\n  return {\n    name: 'piece',\n    abbreviation: '',\n  };\n};\n\nconst normalizeIngredient = (ing) => {\n  if (!ing) return null;\n\n  return {\n    ingredient: String(ing.ingredient ?? ''),\n    servingSize: toNumber(ing.servingSize ?? 0),\n    unit: ensureUnit(ing.unit),\n  };\n};\n\nconst normalized = raw.map((recipe, recipeIndex) => {\n  const ni = recipe.nutritionalInformation ?? {};\n  const prefs = recipe.preferences ?? {};\n  const ingredients = recipe.ingredients ?? {};\n  const your = Array.isArray(ingredients.yourIngredients)\n    ? ingredients.yourIngredients\n    : [];\n  const extra = Array.isArray(ingredients.extraIngredients)\n    ? ingredients.extraIngredients\n    : [];\n\n  return {\n    json: {\n      title: String(recipe.title ?? `Recipe ${recipeIndex + 1}`),\n      cookingTime: String(recipe.cookingTime ?? ''),\n      cooksAmount: toNumber(recipe.cooksAmount ?? 1, 1),\n\n      nutritionalInformation: {\n        calories: toNumber(ni.calories ?? 0, 0),\n        proteins: toNumber(ni.proteins ?? 0, 0),\n        fats: toNumber(ni.fats ?? 0, 0),\n        carbs: toNumber(ni.carbs ?? 0, 0),\n      },\n\n      preferences: {\n        cookingTime: prefs.cookingTime ?? undefined,\n        cuisine: prefs.cuisine ?? undefined,\n        dietPreferences: prefs.dietPreferences ?? undefined,\n      },\n\n      ingredients: {\n        yourIngredients: your\n          .map(normalizeIngredient)\n          .filter((x) => x !== null),\n        extraIngredients: extra\n          .map(normalizeIngredient)\n          .filter((x) => x !== null),\n      },\n\n      directions: Array.isArray(recipe.directions)\n        ? recipe.directions.map((step, i) => ({\n            order: toNumber(step.order ?? i + 1, i + 1),\n            title: String(step.title ?? `Step ${i + 1}`),\n            description: String(step.description ?? ''),\n            cook: toNumber(step.cook ?? 1, 1),\n          }))\n        : [],\n    },\n  };\n});\n\nreturn normalized;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -66,7 +66,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        592,
+        656,
         -96
       ],
       "id": "198defe3-8939-499c-8404-6f0d4df85e4a",
@@ -79,7 +79,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        88,
+        -32,
         128
       ],
       "id": "966d0c40-debd-4f6d-af04-e47646c8cd03",
