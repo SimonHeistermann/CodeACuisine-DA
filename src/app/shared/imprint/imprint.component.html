@@ -1,0 +1,103 @@
+<main class="imprint-page">
+    <div class="imprint-page__inner">
+      <header class="imprint-page__header">
+        <a [routerLink]="['/']">
+          <img
+            src="img/logo_green.png"
+            alt="Code à Cuisine logo"
+            class="imprint-page__logo"
+          />
+        </a>
+      </header>
+      <a class="imprint-page__back-link" [routerLink]="['/']">
+        <span class="imprint-page__back-icon-wrapper">
+          <img
+            src="img/arrow_green_left.png"
+            alt="back"
+            class="imprint-page__back-icon"
+          />
+        </span>
+        <span class="imprint-page__back-text">Back</span>
+      </a>
+      <section class="imprint">
+        <h1 class="imprint__title">Imprint</h1>
+        <div class="imprint__card">
+          <section class="imprint__section">
+            <h2 class="imprint__section-title">
+              Information in accordance with Section 5 DDG
+            </h2>
+            <p class="imprint__text">
+              <span class="imprint__label">Name:</span>
+              <span class="imprint__placeholder">Simon Heistermann</span>
+            </p>
+            <p class="imprint__text">
+              <span class="imprint__label">Legal form:</span>
+              <span class="imprint__placeholder">
+                Sole proprietor (Einzelunternehmer)
+              </span>
+            </p>
+          </section>
+          <section class="imprint__section">
+            <h2 class="imprint__section-title">Address</h2>
+            <p class="imprint__text">
+              <span class="imprint__placeholder">Mutter-Teresa-Weg 6</span>
+            </p>
+            <p class="imprint__text">
+              <span class="imprint__placeholder">46325 Borken</span>
+            </p>
+            <p class="imprint__text">
+              <span class="imprint__placeholder">Germany</span>
+            </p>
+          </section>
+          <section class="imprint__section">
+            <h2 class="imprint__section-title">Contact</h2>
+            <p class="imprint__text">
+              <span class="imprint__label">Email:</span>
+              <a
+                href="mailto:business@darewithsimon.com"
+                class="imprint__email-link"
+              >
+                business@darewithsimon.com
+              </a>
+            </p>
+          </section>
+          <section class="imprint__section">
+            <h2 class="imprint__section-title">
+              Responsible for content according to § 18 MStV
+            </h2>
+            <p class="imprint__text">
+              <span class="imprint__placeholder">Simon Heistermann</span>
+            </p>
+            <p class="imprint__text">
+              <span class="imprint__placeholder">Mutter-Teresa-Weg 6</span>
+            </p>
+            <p class="imprint__text">
+              <span class="imprint__placeholder">46325 Borken</span>
+            </p>
+            <p class="imprint__text">
+              <span class="imprint__placeholder">Germany</span>
+            </p>
+          </section>
+          <section class="imprint__section">
+            <h2 class="imprint__section-title">Disclaimer</h2>
+            <p class="imprint__paragraph">
+              Despite careful content control, we assume no liability for the
+              content of external links. The operators of the linked pages are
+              solely responsible for their content.
+            </p>
+            <p class="imprint__paragraph">
+              We strive to keep the information on this website accurate and up
+              to date. However, we do not guarantee completeness, accuracy, or
+              timeliness.
+            </p>
+          </section>
+          <section class="imprint__section imprint__section--last">
+            <p class="imprint__meta">
+              <span class="imprint__label">Last updated:</span>
+              <span class="imprint__placeholder">{{ lastUpdated }}</span>
+            </p>
+          </section>
+        </div>
+      </section>
+    </div>
+</main>

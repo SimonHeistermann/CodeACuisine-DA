@@ -7,6 +7,7 @@ import { RecipeResultsComponent } from './features/new-recipe/recipe-results/rec
 import { RecipeDetailComponent } from './features/recipe-detail/recipe-detail.component';
 import { CookbookComponent } from './features/cookbook/cookbook.component';
 import { RecipesListComponent } from './features/recipes-list/recipes-list.component';
+import { ImprintComponent } from './shared/imprint/imprint.component';
 
 export const routes: Routes = [
   { path: '', component: HeroComponent },
@@ -19,5 +20,8 @@ export const routes: Routes = [
   { path: 'cookbook', component: CookbookComponent },
   { path: 'cookbook/cuisine/:cuisineName', component: RecipesListComponent },
   { path: 'cookbook/:id', component: RecipeDetailComponent },
+
+  { path: 'imprint', component: ImprintComponent },
+
   { path: '**', redirectTo: '' },
 ];

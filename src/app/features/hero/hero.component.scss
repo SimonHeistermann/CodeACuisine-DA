@@ -324,3 +324,39 @@
     display: block;
   }
 }
+
+.hero__footer {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  z-index: 2;
+}
+
+.hero__footer-link {
+  font-family: fonts.$font-family-quicksand;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba($hero-text, 0.8);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    color: $hero-text;
+  }
+}
+
+@media (max-width: 620px) {
+  .hero__footer {
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+
+  .hero__footer-link {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 290px) {
+  .hero__footer-link {
+    font-size: 12px;
+  }
+}

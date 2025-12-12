@@ -1,4 +1,4 @@
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { CommonModule, TitleCasePipe, Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 
@@ -22,6 +22,7 @@ export class CookbookComponent implements OnInit {
     private readonly state: StateService,
     private readonly firestoreRecipeService: FirestoreRecipeService,
     private readonly router: Router,
+    private readonly location: Location,
   ) {}  
 
   get cuisines() {
@@ -69,5 +70,9 @@ export class CookbookComponent implements OnInit {
       (a, b) => (b.likes ?? 0) - (a.likes ?? 0),
     );
     return sorted.slice(0, this.NUMBER_OF_TOP_RECIPES);
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

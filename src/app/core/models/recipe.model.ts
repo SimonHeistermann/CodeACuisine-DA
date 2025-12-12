@@ -44,7 +44,6 @@ export interface RecipeStep {
 }
   
   export interface GeneratedRecipe {
-    /** Firestore-Dokument-ID, falls vorhanden */
     id?: string;
   
     title: string;
@@ -59,4 +58,28 @@ export interface RecipeStep {
     directions: RecipeStep[];
     likes?: number;
     recipeSignature?: string;
+}
+
+export interface QuotaInfo {
+    ip: {
+      limit: number;
+      used: number;
+      remaining: number;
+    };
+    system: {
+      limit: number;
+      used: number;
+      remaining: number;
+    };
+}
+  
+export interface GenerateRecipeResponse {
+    recipes: GeneratedRecipe[];
+    quota: QuotaInfo;
+}
+  
+export interface QuotaErrorResponse {
+    error: string;
+    message: string;
+    quota?: QuotaInfo;
 }  

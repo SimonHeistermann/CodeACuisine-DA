@@ -1,0 +1,81 @@
+{
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          -208,
+          0
+        ],
+        "id": "daaa1b80-416b-4abf-9b90-3502a5e00b66",
+        "name": "Error Trigger"
+      },
+      {
+        "parameters": {
+          "fromEmail": "noreply@heistermann-solutions.de",
+          "toEmail": "business@darewithsimon.com",
+          "subject": "=={{$json.subject}}",
+          "html": "=={{$json.text}}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.emailSend",
+        "typeVersion": 2.1,
+        "position": [
+          272,
+          0
+        ],
+        "id": "b173f687-a08b-4087-bc4d-f782b986629a",
+        "name": "Send email",
+        "webhookId": "6788d403-bb52-4dbc-aff2-ee0820805568",
+        "credentials": {
+          "smtp": {
+            "id": "tnQaglQyMcEXYclt",
+            "name": "SMTP account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const e = $json;\n\nreturn [{\n  json: {\n    subject: `[n8n ERROR] ${e.workflow?.name ?? 'unknown workflow'} – ${e.node?.name ?? 'unknown node'}`,\n    text: [\n      `Workflow: ${e.workflow?.name}`,\n      `Node: ${e.node?.name}`,\n      `Execution ID: ${e.execution?.id}`,\n      ``,\n      `Message: ${e.error?.message ?? 'n/a'}`,\n      ``,\n      `Stack:`,\n      e.error?.stack ?? 'n/a',\n    ].join('\\n')\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          16,
+          0
+        ],
+        "id": "63b3b8bb-eb5e-4438-94d6-b99c5d860793",
+        "name": "Format Error Mail"
+      }
+    ],
+    "connections": {
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Format Error Mail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Error Mail": {
+        "main": [
+          [
+            {
+              "node": "Send email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "18c08fb34b3b741bb865416cbc33536b72bef01fc90168069f6640ca14a0e1ec"
+    }
+}

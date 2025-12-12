@@ -1,0 +1,207 @@
+@use './../../../styles/colors.scss' as *;
+@use './../../../styles/fonts.scss' as fonts;
+@use './../../../styles/mixins.scss' as mixins;
+
+:host {
+  display: block;
+}
+
+.imprint-page {
+  background-color: $bg-color;
+  min-height: 100vh;
+}
+
+.imprint-page__inner {
+  max-width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 80px;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  color: $primary-green;
+  font-family: fonts.$font-family-quicksand;
+}
+
+.imprint-page__header {
+  height: 136px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.imprint-page__logo {
+  height: 48px;
+  width: auto;
+}
+
+.imprint-page__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: $primary-green;
+  text-decoration: none;
+  margin-bottom: 24px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.imprint-page__back-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imprint-page__back-icon {
+  width: 16px;
+  height: auto;
+}
+
+.imprint-page__back-text {
+  font-size: 16px;
+}
+
+.imprint {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 40px;
+}
+
+.imprint__title {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 120%;
+  color: $middle-green;
+}
+
+.imprint__card {
+  background-color: $light-green;
+  border-radius: 20px;
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 960px;
+  color: $dark-green;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.imprint__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.imprint__section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $dark-green;
+  margin-bottom: 4px;
+}
+
+.imprint__text {
+  font-size: 16px;
+  line-height: 140%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.imprint__label {
+  font-weight: 600;
+}
+
+.imprint__placeholder {
+  font-weight: 500;
+  color: rgba($dark-green, 0.9);
+}
+
+.imprint__paragraph {
+  font-size: 16px;
+  line-height: 150%;
+  color: rgba($dark-green, 0.95);
+}
+
+.imprint__meta {
+  font-size: 14px;
+  line-height: 150%;
+  color: rgba($dark-green, 0.85);
+}
+
+.imprint__section--last {
+  padding-top: 6px;
+  border-top: 1px solid rgba($dark-green, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 920px) {
+  .imprint-page__inner {
+    padding: 0px 16px 32px 16px;
+  }
+
+  .imprint-page__header {
+    height: 52px;
+  }
+
+  .imprint-page__logo {
+    height: 32px;
+  }
+
+  .imprint-page__back-icon {
+    width: 20px;
+    margin-left: 4px;
+  }
+
+  .imprint-page__back-text {
+    display: none;
+  }
+
+  .imprint__title {
+    font-size: 24px;
+  }
+
+  .imprint__card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .imprint__section-title {
+    font-size: 18px;
+  }
+
+  .imprint__text,
+  .imprint__paragraph {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 350px) {
+  .imprint__card {
+    padding: 16px 12px;
+  }
+
+  .imprint__text,
+  .imprint__paragraph {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 290px) {
+  .imprint__title {
+    font-size: 22px;
+  }
+
+  .imprint__section-title {
+    font-size: 16px;
+  }
+
+  .imprint__text,
+  .imprint__paragraph {
+    font-size: 13px;
+  }
+}

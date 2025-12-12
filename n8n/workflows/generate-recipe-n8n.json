@@ -10,8 +10,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -480,
-        -112
+        -1952,
+        -16
       ],
       "id": "1e800dc9-88ca-405f-8208-e7c3f7fa3278",
       "name": "Webhook",
@@ -19,55 +19,43 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $json.body || $json;\n\nif (!body.ingredients || !Array.isArray(body.ingredients) || body.ingredients.length === 0) {\n  throw new Error('No ingredients provided in request body.');\n}\n\nbody.ingredients = body.ingredients.map((ing) => {\n  const { isEditMode, isUnitDropdownOpen, ...rest } = ing;\n  return rest;\n});\n\nif (body.cookingTime) body.cookingTime = String(body.cookingTime).toLowerCase();\nif (body.cuisine) body.cuisine = String(body.cuisine).toLowerCase();\nif (body.dietPreferences) body.dietPreferences = String(body.dietPreferences).toLowerCase();\n\nif (typeof body.portionsAmount !== 'number' || body.portionsAmount <= 0) {\n  body.portionsAmount = 2;\n}\n\nif (typeof body.cooksAmount !== 'number' || body.cooksAmount <= 0) {\n  body.cooksAmount = 1;\n}\n\nreturn [{ json: body }];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -208,
-        -96
-      ],
-      "id": "87f895bf-9f3a-49c7-894f-2221e65d74e9",
-      "name": "Validate & Normalize Input"
-    },
-    {
-      "parameters": {
         "promptType": "define",
-        "text": "=You are part of a workflow of an application that lets users enter the ingredients they have at home and select some preferences. Your task is to generate cooking recipes **strictly** in JSON format.\n\nYour task:\n- Receive all ingredients and preferences from the input JSON.\n- Generate **exactly three** recipes based on this data.\n- Recipes should primarily use the provided ingredients, but you may add extra ingredients to improve taste or structure.\n- Separate ingredients the user already has from additional ones you introduce.\n\nOutput format:\nReturn a JSON **array of exactly 3 recipe objects**. No prose, no explanations, only JSON.\n\nEach recipe object must contain these keys:\n- \"title\": string – the name of the recipe\n- \"cookingTime\": string – time to prepare this recipe (e.g. \"45 minutes\")\n- \"nutritionalInformation\": object with keys { \"calories\", \"proteins\", \"fats\", \"carbs\" } (numbers)\n- \"preferences\": object with the keys { \"cookingTime\", \"cuisine\", \"dietPreferences\" } matching the user input when available\n- \"cooksAmount\": number – amount of cooks (same as input)\n- \"ingredients\": object with two keys:\n   - \"yourIngredients\": array of ingredient objects\n   - \"extraIngredients\": array of ingredient objects you add\n  Each ingredient object must have keys { \"ingredient\", \"servingSize\", \"unit\" } where \"unit\" is an object like { \"name\", \"abbreviation\" }.\n- \"directions\": array of step objects, each with keys:\n   - \"order\": number (1-based)\n   - \"title\": short string title of the step\n   - \"description\": detailed string description of the step\n   - \"cook\": number indicating which cook (1..cooksAmount) should do this step\n\nIMPORTANT RULES:\n- Return **valid JSON only**. No markdown, no comments, no trailing commas.\n- Return **exactly three** recipes in one top-level JSON array.\n- Do not include any additional fields or text outside this structure.\n\nUser data (already validated and normalized):\n\n{{ JSON.stringify($json) }}",
+        "text": "=You are part of a workflow of an application that lets users enter the ingredients they have at home and select some preferences. Your task is to generate cooking recipes **strictly** in JSON format.\n\nYour task:\n- Receive all ingredients and preferences from the input JSON.\n- Generate **exactly three** recipes based on this data.\n- Recipes should primarily use the provided ingredients, but you may add extra ingredients to improve taste or structure.\n- Separate ingredients the user already has from additional ones you introduce.\n\nOutput format:\nReturn a JSON **array of exactly 3 recipe objects**. No prose, no explanations, only JSON.\n\nEach recipe object must contain these keys:\n- \"title\": string – the name of the recipe\n- \"cookingTime\": string – time to prepare this recipe (e.g. \"45 minutes\")\n- \"nutritionalInformation\": object with keys { \"calories\", \"proteins\", \"fats\", \"carbs\" } (numbers)\n- \"preferences\": object with the keys { \"cookingTime\", \"cuisine\", \"dietPreferences\" } matching the user input when available\n- \"cooksAmount\": number – amount of cooks (same as input)\n- \"ingredients\": object with two keys:\n   - \"yourIngredients\": array of ingredient objects\n   - \"extraIngredients\": array of ingredient objects you add\n  Each ingredient object must have keys { \"ingredient\", \"servingSize\", \"unit\" } where \"unit\" is an object like { \"name\", \"abbreviation\" }.\n- \"directions\": array of step objects, each with keys:\n   - \"order\": number (1-based)\n   - \"title\": short string title of the step\n   - \"description\": detailed string description of the step\n   - \"cook\": number indicating which cook (1..cooksAmount) should do this step\n\nIMPORTANT RULES:\n- Return **valid JSON only**. No markdown, no comments, no trailing commas.\n- Return **exactly three** recipes in one top-level JSON array.\n- Do not include any additional fields or text outside this structure.\n\nUser data (already validated and normalized):\n\n{{ JSON.stringify($json.request) }}",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        16,
-        -96
+        -160,
+        80
       ],
       "id": "3747ed31-e247-4d07-a736-5adab0fad7a7",
       "name": "AI Agent"
     },
     {
       "parameters": {
-        "jsCode": "let raw = $json.output ?? $json.result ?? $json;\n\nif (typeof raw === 'string') {\n  let text = raw.trim();\n\n  if (text.startsWith('```')) {\n    const firstNewline = text.indexOf('\\n');\n    if (firstNewline !== -1) {\n      text = text.slice(firstNewline + 1);\n    }\n\n    const fenceIndex = text.lastIndexOf('```');\n    if (fenceIndex !== -1) {\n      text = text.slice(0, fenceIndex);\n    }\n  }\n\n  text = text.trim();\n\n  try {\n    raw = JSON.parse(text);\n  } catch (e) {\n    throw new Error('LLM did not return valid JSON: ' + e.message);\n  }\n}\n\nif (!Array.isArray(raw)) {\n  throw new Error('Expected an array of recipes from LLM');\n}\n\nif (raw.length > 3) {\n  raw = raw.slice(0, 3);\n}\n\nconst toNumber = (value, fallback = 0) => {\n  if (typeof value === 'number') return value;\n  if (typeof value === 'string') {\n    const match = value.match(/-?\\d+(\\.\\d+)?/);\n    return match ? parseFloat(match[0]) : fallback;\n  }\n  return fallback;\n};\n\nconst ensureUnit = (unit) => {\n  if (\n    unit &&\n    typeof unit === 'object' &&\n    typeof unit.name === 'string' &&\n    typeof unit.abbreviation === 'string'\n  ) {\n    return unit;\n  }\n\n  return {\n    name: 'piece',\n    abbreviation: '',\n  };\n};\n\nconst normalizeIngredient = (ing) => {\n  if (!ing) return null;\n\n  return {\n    ingredient: String(ing.ingredient ?? ''),\n    servingSize: toNumber(ing.servingSize ?? 0),\n    unit: ensureUnit(ing.unit),\n  };\n};\n\nconst normalized = raw.map((recipe, recipeIndex) => {\n  const ni = recipe.nutritionalInformation ?? {};\n  const prefs = recipe.preferences ?? {};\n  const ingredients = recipe.ingredients ?? {};\n  const your = Array.isArray(ingredients.yourIngredients)\n    ? ingredients.yourIngredients\n    : [];\n  const extra = Array.isArray(ingredients.extraIngredients)\n    ? ingredients.extraIngredients\n    : [];\n\n  return {\n    json: {\n      title: String(recipe.title ?? `Recipe ${recipeIndex + 1}`),\n      cookingTime: String(recipe.cookingTime ?? ''),\n      cooksAmount: toNumber(recipe.cooksAmount ?? 1, 1),\n\n      nutritionalInformation: {\n        calories: toNumber(ni.calories ?? 0, 0),\n        proteins: toNumber(ni.proteins ?? 0, 0),\n        fats: toNumber(ni.fats ?? 0, 0),\n        carbs: toNumber(ni.carbs ?? 0, 0),\n      },\n\n      preferences: {\n        cookingTime: prefs.cookingTime ?? undefined,\n        cuisine: prefs.cuisine ?? undefined,\n        dietPreferences: prefs.dietPreferences ?? undefined,\n      },\n\n      ingredients: {\n        yourIngredients: your\n          .map(normalizeIngredient)\n          .filter((x) => x !== null),\n        extraIngredients: extra\n          .map(normalizeIngredient)\n          .filter((x) => x !== null),\n      },\n\n      directions: Array.isArray(recipe.directions)\n        ? recipe.directions.map((step, i) => ({\n            order: toNumber(step.order ?? i + 1, i + 1),\n            title: String(step.title ?? `Step ${i + 1}`),\n            description: String(step.description ?? ''),\n            cook: toNumber(step.cook ?? 1, 1),\n          }))\n        : [],\n    },\n  };\n});\n\nreturn normalized;"
+        "jsCode": "let raw = $json.output ?? $json.result ?? $json;\n\nconst toText = (v) => {\n  if (Array.isArray(v)) return String(v[0] ?? '');\n  if (v == null) return '';\n  return String(v);\n};\n\nif (typeof raw === 'string') {\n  let text = raw.trim();\n\n  if (text.startsWith('```')) {\n    const firstNewline = text.indexOf('\\n');\n    if (firstNewline !== -1) {\n      text = text.slice(firstNewline + 1);\n    }\n\n    const fenceIndex = text.lastIndexOf('```');\n    if (fenceIndex !== -1) {\n      text = text.slice(0, fenceIndex);\n    }\n  }\n\n  text = text.trim();\n\n  try {\n    raw = JSON.parse(text);\n  } catch (e) {\n    throw new Error('LLM did not return valid JSON: ' + e.message);\n  }\n}\n\nif (!Array.isArray(raw)) {\n  throw new Error('Expected an array of recipes from LLM');\n}\n\nif (raw.length > 3) {\n  raw = raw.slice(0, 3);\n}\n\nconst toNumber = (value, fallback = 0) => {\n  if (typeof value === 'number') return value;\n  if (typeof value === 'string') {\n    const match = value.match(/-?\\d+(\\.\\d+)?/);\n    return match ? parseFloat(match[0]) : fallback;\n  }\n  return fallback;\n};\n\nconst ensureUnit = (unit) => {\n  if (\n    unit &&\n    typeof unit === 'object' &&\n    typeof unit.name === 'string' &&\n    typeof unit.abbreviation === 'string'\n  ) {\n    return unit;\n  }\n\n  return {\n    name: 'piece',\n    abbreviation: '',\n  };\n};\n\nconst normalizeIngredient = (ing) => {\n  if (!ing) return null;\n\n  return {\n    ingredient: String(ing.ingredient ?? ''),\n    servingSize: toNumber(ing.servingSize ?? 0),\n    unit: ensureUnit(ing.unit),\n  };\n};\n\nconst normalized = raw.map((recipe, recipeIndex) => {\n  const ni = recipe.nutritionalInformation ?? {};\n  const prefs = recipe.preferences ?? {};\n  const ingredients = recipe.ingredients ?? {};\n  const your = Array.isArray(ingredients.yourIngredients)\n    ? ingredients.yourIngredients\n    : [];\n  const extra = Array.isArray(ingredients.extraIngredients)\n    ? ingredients.extraIngredients\n    : [];\n\n  return {\n    json: {\n      title: String(recipe.title ?? `Recipe ${recipeIndex + 1}`),\n      cookingTime: String(recipe.cookingTime ?? ''),\n      cooksAmount: toNumber(recipe.cooksAmount ?? 1, 1),\n\n      nutritionalInformation: {\n        calories: toNumber(ni.calories ?? 0, 0),\n        proteins: toNumber(ni.proteins ?? 0, 0),\n        fats: toNumber(ni.fats ?? 0, 0),\n        carbs: toNumber(ni.carbs ?? 0, 0),\n      },\n\n      preferences: {\n        cookingTime: toText(prefs.cookingTime) || undefined,\n        cuisine: toText(prefs.cuisine) || undefined,\n        dietPreferences: toText(prefs.dietPreferences) || undefined,\n      },\n\n      ingredients: {\n        yourIngredients: your\n          .map(normalizeIngredient)\n          .filter((x) => x !== null),\n        extraIngredients: extra\n          .map(normalizeIngredient)\n          .filter((x) => x !== null),\n      },\n\n      directions: Array.isArray(recipe.directions)\n        ? recipe.directions.map((step, i) => ({\n            order: toNumber(step.order ?? i + 1, i + 1),\n            title: String(step.title ?? `Step ${i + 1}`),\n            description: String(step.description ?? ''),\n            cook: toNumber(step.cook ?? 1, 1),\n          }))\n        : [],\n    },\n  };\n});\n\nreturn normalized;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        368,
-        -96
+        192,
+        80
       ],
       "id": "ef7fd791-8358-4824-941b-8a0d35f80eb3",
       "name": "Normalize & Validate Recipes"
     },
     {
       "parameters": {
-        "respondWith": "allIncomingItems",
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
         "options": {}
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        656,
-        -96
+        640,
+        80
       ],
       "id": "198defe3-8939-499c-8404-6f0d4df85e4a",
       "name": "Respond to Webhook"
@@ -79,8 +67,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -32,
-        128
+        -96,
+        304
       ],
       "id": "966d0c40-debd-4f6d-af04-e47646c8cd03",
       "name": "Google Gemini Chat Model",
@@ -90,6 +78,174 @@
           "name": "Google Gemini(PaLM) Api account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nconst request = $json.request || {};\n\nlet ip =\n  headers['x-forwarded-for'] ||\n  headers['X-Forwarded-For'] ||\n  headers['x-real-ip'] ||\n  headers['X-Real-IP'] ||\n  request.ip ||\n  $json.ip ||\n  'unknown';\n\nip = String(ip).split(',')[0].trim().toLowerCase();\n\nconst now = new Date();\nconst day = now.toISOString().slice(0, 10);\nconst minute = now.toISOString().slice(0, 16).replace(/[:T]/g, '-');\n\nreturn [{\n  json: {\n    headers,\n    request,  \n    ip,\n    day,\n    keys: {\n      ipQuota: `quota:ip:${ip}:${day}`,\n      systemQuota: `quota:system:${day}`,\n      rateMinute: `rate:ip:${ip}:${minute}`,\n    },\n    limits: {\n      ipPerDay: 3,\n      systemPerDay: 12,\n      ratePerMinute: 5,\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1504,
+        -16
+      ],
+      "id": "9c86f386-096b-44ec-85d5-426ec499ad61",
+      "name": "Extract & Normalize Client IP (IPv4/IPv6)"
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "={{$node[\"Extract & Normalize Client IP (IPv4/IPv6)\"].json.keys.ipQuota}}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        -16
+      ],
+      "id": "f028025a-9793-4d77-89f6-c17af5fb54a8",
+      "name": "Redis INCR – IP Quota (daily)",
+      "credentials": {
+        "redis": {
+          "id": "lwoIKYvF8pVhvbKL",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "={{$node[\"Extract & Normalize Client IP (IPv4/IPv6)\"].json.keys.systemQuota}}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        -16
+      ],
+      "id": "00a7d95d-dcd8-46e5-a9d5-d3ef832164c2",
+      "name": "Redis INCR – System Quota (daily)",
+      "credentials": {
+        "redis": {
+          "id": "lwoIKYvF8pVhvbKL",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "={{$node[\"Extract & Normalize Client IP (IPv4/IPv6)\"].json.keys.rateMinute}}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -832,
+        -16
+      ],
+      "id": "66736fd0-5d19-46d9-889b-e0ea42895e14",
+      "name": "Redis INCR – Rate Limit (per minute)",
+      "credentials": {
+        "redis": {
+          "id": "lwoIKYvF8pVhvbKL",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ea967dfa-42d4-4038-be08-c2ff081a1fe1",
+              "leftValue": "={{$node[\"Redis INCR – IP Quota (daily)\"].json.value}}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "72365998-f326-45a4-90fe-4ce28975dc02",
+              "leftValue": "={{$node[\"Redis INCR – System Quota (daily)\"].json.value}}",
+              "rightValue": 12,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "30d3be2a-9a58-4040-96f5-31fa84197bf6",
+              "leftValue": "={{$node[\"Redis INCR – Rate Limit (per minute)\"].json.value}}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -608,
+        -16
+      ],
+      "id": "26b9085d-0ee4-4518-be30-3c04358a8d9d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"quota_exceeded\",\n  \"message\": \"Du hast dein Tageslimit erreicht oder zu viele Anfragen in kurzer Zeit gesendet.\",\n  \"quota\": {\n    \"ip\": {\n      \"limit\": 3,\n      \"used\": \"={{$node['Redis INCR – IP Quota (daily)'].json.value}}\",\n      \"remaining\": \"={{Math.max(0, 3 - $node['Redis INCR – IP Quota (daily)'].json.value)}}\"\n    },\n    \"system\": {\n      \"limit\": 12,\n      \"used\": \"={{$node['Redis INCR – System Quota (daily)'].json.value}}\",\n      \"remaining\": \"={{Math.max(0, 12 - $node['Redis INCR – System Quota (daily)'].json.value)}}\"\n    }\n  }\n}",
+        "options": {
+          "responseCode": 429
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -384,
+        -112
+      ],
+      "id": "5e586ca8-25aa-4d38-86f8-b48caec5a419",
+      "name": "Respond 429 – Quota/Rate exceeded"
+    },
+    {
+      "parameters": {
+        "jsCode": "const recipes = $input.all().map(i => i.json);\n\nconst asInt = (v) => {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : 0;\n};\n\nconst ipUsed = asInt($node[\"Redis INCR – IP Quota (daily)\"].json.value);\nconst sysUsed = asInt($node[\"Redis INCR – System Quota (daily)\"].json.value);\n\nreturn [{\n  json: {\n    recipes,\n    quota: {\n      ip: { limit: 3, used: ipUsed, remaining: Math.max(0, 3 - ipUsed) },\n      system: { limit: 12, used: sysUsed, remaining: Math.max(0, 12 - sysUsed) }\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        80
+      ],
+      "id": "10044499-9a04-4925-8981-2cadafded81f",
+      "name": "Build Success Response (recipes + quota)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const headers = $json.headers || {};\nconst body = $json.body || $json;\n\nif (!body.ingredients || !Array.isArray(body.ingredients) || body.ingredients.length === 0) {\n  throw new Error('No ingredients provided in request body.');\n}\n\nconst cleaned = {\n  ...body,\n  ingredients: body.ingredients.map((ing) => {\n    const { isEditMode, isUnitDropdownOpen, ...rest } = ing;\n    return rest;\n  }),\n};\n\nif (cleaned.cookingTime) cleaned.cookingTime = String(cleaned.cookingTime).toLowerCase();\nif (cleaned.cuisine) cleaned.cuisine = String(cleaned.cuisine).toLowerCase();\nif (cleaned.dietPreferences) cleaned.dietPreferences = String(cleaned.dietPreferences).toLowerCase();\n\nif (typeof cleaned.portionsAmount !== 'number' || cleaned.portionsAmount <= 0) cleaned.portionsAmount = 2;\nif (typeof cleaned.cooksAmount !== 'number' || cleaned.cooksAmount <= 0) cleaned.cooksAmount = 1;\n\nreturn [{\n  json: {\n    headers,\n    request: cleaned,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1728,
+        -16
+      ],
+      "id": "b14721ec-ac9f-4b36-b77e-5f7d6b631b76",
+      "name": "Validate & Normalize Input1"
     }
   ],
   "connections": {
@@ -97,18 +253,7 @@
       "main": [
         [
           {
-            "node": "Validate & Normalize Input",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Validate & Normalize Input": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
+            "node": "Validate & Normalize Input1",
             "type": "main",
             "index": 0
           }
@@ -130,7 +275,7 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Build Success Response (recipes + quota)",
             "type": "main",
             "index": 0
           }
@@ -147,11 +292,94 @@
           }
         ]
       ]
+    },
+    "Extract & Normalize Client IP (IPv4/IPv6)": {
+      "main": [
+        [
+          {
+            "node": "Redis INCR – IP Quota (daily)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis INCR – IP Quota (daily)": {
+      "main": [
+        [
+          {
+            "node": "Redis INCR – System Quota (daily)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis INCR – System Quota (daily)": {
+      "main": [
+        [
+          {
+            "node": "Redis INCR – Rate Limit (per minute)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis INCR – Rate Limit (per minute)": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond 429 – Quota/Rate exceeded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Success Response (recipes + quota)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate & Normalize Input1": {
+      "main": [
+        [
+          {
+            "node": "Extract & Normalize Client IP (IPv4/IPv6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "pinData": {},
   "meta": {
-    "templateCredsSetupCompleted": true,
     "instanceId": "18c08fb34b3b741bb865416cbc33536b72bef01fc90168069f6640ca14a0e1ec"
   }
 }

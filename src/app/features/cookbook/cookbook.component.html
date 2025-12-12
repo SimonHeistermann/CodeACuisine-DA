@@ -12,9 +12,10 @@
       </header>
   
       <!-- Back-Link -->
-      <a
+      <button
+        type="button"
         class="cookbook-page__back-link"
-        [routerLink]="['/recipe-results']"
+        (click)="goBack()"
       >
         <span class="cookbook-page__back-icon-wrapper">
           <img
@@ -24,7 +25,7 @@
           />
         </span>
         <span class="cookbook-page__back-text">Back</span>
-      </a>
+      </button>
   
       <!-- ============ Header-Card: Cookbook + Most liked ============ -->
       <section class="cookbook-header">

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   GeneratedRecipe,
   RecipeRequirements,
+  QuotaInfo,
 } from '../../models/recipe.model';
 
 @Injectable({
@@ -67,6 +68,8 @@ export class StateService {
     ],
     dietPreferences: ['vegetarian', 'vegan', 'keto', 'no preferences'],
   };
+
+  quota: QuotaInfo | null = null;
 
   constructor() {}
 }

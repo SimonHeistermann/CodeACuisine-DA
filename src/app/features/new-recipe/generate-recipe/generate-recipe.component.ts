@@ -7,14 +7,13 @@ import {
   UnitOfMeasurement,
   RecipeRequirements,
 } from '../../../core/models/recipe.model';
-import { ToastOverlayComponent } from '../../../shared/toast-overlay/toast-overlay.component';
 import { StateService } from '../../../core/services/state-service/state.service';
 import { IngredientAutocompleteService } from '../../../core/services/ingredient-autocomplete-service/ingredient-autocomplete.service';
 
 @Component({
   selector: 'app-generate-recipe',
   standalone: true,
-  imports: [RouterModule, FormsModule, ToastOverlayComponent],
+  imports: [RouterModule, FormsModule],
   templateUrl: './generate-recipe.component.html',
   styleUrl: './generate-recipe.component.scss',
 })

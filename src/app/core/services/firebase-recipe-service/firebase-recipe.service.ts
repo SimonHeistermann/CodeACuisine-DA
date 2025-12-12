@@ -64,18 +64,22 @@ export class FirestoreRecipeService {
     return `${name}|${size}|${unit}`;
   }
 
+  private safeLower(value: unknown): string {
+    if (Array.isArray(value)) return String(value[0] ?? '').trim().toLowerCase();
+    if (value == null) return '';
+    return String(value).trim().toLowerCase();
+  }
+  
   private buildRecipeSignature(recipe: GeneratedRecipe): string {
-    const title = recipe.title.trim().toLowerCase();
+    const title = this.safeLower(recipe.title);
     const prefs = recipe.preferences ?? {};
-    const cuisine = (prefs.cuisine ?? '').toLowerCase();
-    const time = (prefs.cookingTime ?? '').toLowerCase();
-    const diet = (prefs.dietPreferences ?? '').toLowerCase();
+    const cuisine = this.safeLower((prefs as any).cuisine);
+    const time = this.safeLower((prefs as any).cookingTime);
+    const diet = this.safeLower((prefs as any).dietPreferences);
     const cooks = String(recipe.cooksAmount ?? 0);
     const ingredientsKey = this.buildIngredientsKey(recipe);
-    return [title, cuisine, time, diet, cooks, ingredientsKey].join(
-      '||',
-    );
-  }
+    return [title, cuisine, time, diet, cooks, ingredientsKey].join('||');
+  }  
 
   private async findBySignature(
     signature: string,
