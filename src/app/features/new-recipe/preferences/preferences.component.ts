@@ -15,13 +15,36 @@ import { RecipeRequirements } from '../../../core/models/recipe.model';
   templateUrl: './preferences.component.html',
   styleUrl: './preferences.component.scss',
 })
+/**
+ * Component responsible for collecting recipe preferences before generation.
+ *
+ * Responsibilities:
+ * - Allow users to configure portions, cooks, cooking time, cuisine and diet preferences
+ * - Validate whether all required inputs are present
+ * - Trigger the recipe generation flow
+ * - Handle loading state and error feedback
+ */
 export class PreferencesComponent {
+  /** Maximum number of portions allowed. */
   readonly MAX_PORTIONS = 999;
+
+  /** Minimum value for numeric counters. */
   readonly MIN_COUNT = 1;
+
+  /** Maximum number of cooks allowed. */
   readonly MAX_COOKS = 6;
 
+  /** Indicates whether recipe generation is currently in progress. */
   isLoading = false;
 
+  /**
+   * Creates the preferences component.
+   *
+   * @param generateRecipeService Service responsible for triggering recipe generation.
+   * @param state Central application state service.
+   * @param router Angular router used for navigation.
+   * @param toastService Service used to show user-facing feedback.
+   */
   constructor(
     private readonly generateRecipeService: GenerateRecipeService,
     private readonly state: StateService,
@@ -29,18 +52,35 @@ export class PreferencesComponent {
     private readonly toastService: ToastService,
   ) {}
 
+  /**
+   * Returns the available preference options for rendering the UI.
+   */
   get preferences() {
     return this.state.preferencesOptions;
   }
 
+  /**
+   * Returns the current recipe requirements from application state.
+   */
   get recipeRequirements(): RecipeRequirements {
     return this.state.recipeRequirements;
   }
 
+  /**
+   * Indicates whether recipe generation can be triggered.
+   *
+   * All mandatory preferences must be selected.
+   */
   get canGenerateRecipe(): boolean {
     return this.hasAllPreferences();
   }
 
+  /**
+   * Handles the "Generate Recipe" action.
+   *
+   * Ensures ingredients and preferences are present before starting
+   * the generation process.
+   */
   onGenerateRecipe(): void {
     if (this.hasNoIngredients()) {
       this.navigateToIngredientsWithToast();
@@ -50,6 +90,11 @@ export class PreferencesComponent {
     this.startRecipeGeneration();
   }
 
+  /**
+   * Increases the selected amount for portions or cooks.
+   *
+   * @param key Target field to increment.
+   */
   increaseAmount(key: 'portionsAmount' | 'cooksAmount'): void {
     const current = this.recipeRequirements[key];
     const limit = key === 'cooksAmount' ? this.MAX_COOKS : this.MAX_PORTIONS;
@@ -59,6 +104,11 @@ export class PreferencesComponent {
     }
   }
 
+  /**
+   * Decreases the selected amount for portions or cooks.
+   *
+   * @param key Target field to decrement.
+   */
   decreaseAmount(key: 'portionsAmount' | 'cooksAmount'): void {
     const current = this.recipeRequirements[key];
     if (current > this.MIN_COUNT) {
@@ -66,6 +116,12 @@ export class PreferencesComponent {
     }
   }
 
+  /**
+   * Selects a preference value for the given preference key.
+   *
+   * @param key Preference field to update.
+   * @param value Selected preference value.
+   */
   selectPreference(
     key: 'cookingTime' | 'cuisine' | 'dietPreferences',
     value: string,
@@ -73,15 +129,26 @@ export class PreferencesComponent {
     this.recipeRequirements[key] = value;
   }
 
+  /**
+   * Checks whether no ingredients have been added yet.
+   */
   private hasNoIngredients(): boolean {
     return this.recipeRequirements.ingredients.length === 0;
   }
 
+  /**
+   * Checks whether all required preferences are selected.
+   */
   private hasAllPreferences(): boolean {
     const req = this.recipeRequirements;
     return !!(req.cookingTime && req.cuisine && req.dietPreferences);
   }
 
+  /**
+   * Starts the recipe generation process.
+   *
+   * Manages loading state, navigation and error handling.
+   */
   private startRecipeGeneration(): void {
     this.isLoading = true;
 
@@ -96,6 +163,11 @@ export class PreferencesComponent {
     });
   }
 
+  /**
+   * Handles errors that occur during recipe generation.
+   *
+   * @param error Error returned by the generation process.
+   */
   private handleGenerationError(error: unknown): void {
     console.error('Error generating recipe:', error);
     this.isLoading = false;
@@ -110,12 +182,18 @@ export class PreferencesComponent {
     });
   }
 
+  /**
+   * Navigates back to the ingredient input screen and shows a hint toast.
+   */
   private navigateToIngredientsWithToast(): void {
     this.router.navigate(['/generate-recipe']).then(() => {
       this.showMissingIngredientsToast();
     });
   }
 
+  /**
+   * Shows a toast indicating that at least one ingredient is required.
+   */
   private showMissingIngredientsToast(): void {
     this.toastService.show({
       title: 'Ups! Not quite enough…',
