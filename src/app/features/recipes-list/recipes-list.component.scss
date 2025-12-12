@@ -24,8 +24,6 @@
   font-family: fonts.$font-family-quicksand;
 }
 
-/* ===== Header ===== */
-
 .recipes-list-page__header {
     height: 136px;
     padding: 40px 40px 0px 0px;
@@ -57,7 +55,15 @@
   padding-inline: 26px;
 }
 
-/* ===== Back link ===== */
+.recipes-list-page__cta-btn-mobile {
+    @include mixins.button($primary-green, $primary-cream);
+    height: 52px;
+    font-size: 16px;
+    padding: 4px 16px;
+    font-weight: 600;
+    align-self: center;
+    margin-top: 40px;
+}
 
 .recipes-list-page__back-link {
   display: inline-flex;
@@ -87,8 +93,6 @@
 .recipes-list-page__back-text {
   font-size: 16px;
 }
-
-/* ===== Header banner ===== */
 
 .recipes-list-header {
   margin-bottom: 64px;
@@ -120,8 +124,6 @@
   color: $middle-green;
 }
 
-/* ===== List ===== */
-
 .recipes-list {
   flex: 1;
   display: flex;
@@ -141,8 +143,6 @@
   flex-direction: column;
   gap: 8px;
 }
-
-/* einzelne Zeile */
 
 .recipes-list-item {
   width: 100%;
@@ -180,6 +180,21 @@
   font-size: 18px;
   font-weight: 500;
   color: $middle-green;
+  flex-shrink: 0;
+}
+
+.recipes-list-item__index-mobile {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background-color: #F6E3CF;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 500;
+    color: $middle-green;
+    flex-shrink: 0;
 }
 
 .recipes-list-item__content {
@@ -217,7 +232,14 @@
   text-align: left;
 }
 
-/* Tags */
+.recipes-list-item__title-mobile {
+    display: none;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 100%;
+    color: $middle-green;
+    text-align: left;
+}
 
 .recipes-list-item__tags {
   display: inline-flex;
@@ -251,10 +273,8 @@
   object-fit: cover;
 }
 
-/* ===== Pagination ===== */
-
 .recipes-list__pagination {
-  margin-top: 32px;
+  margin-top: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -296,4 +316,87 @@
 
 .recipes-list__pagination-ellipsis {
   padding-inline: 4px;
+}
+
+@media (max-width: 920px) {
+    .recipes-list-page__inner {
+        padding: 0px 16px 32px 16px;
+    }
+    
+    .recipes-list-page__header {
+        height: 52px;
+        padding: 12px 0px 0px 0px;
+        gap: 16px;
+        margin-bottom: 40px;
+    }
+
+    .recipes-list-page__logo {
+        height: 32px;
+    }
+
+    .recipes-list-page__header-2 {
+        display: none;
+    }
+
+    .recipes-list-page__back-text {
+        display: none;
+    }
+
+    .recipes-list-page__back-icon {
+        width: 20px;
+        margin-left: 4px;
+    }
+
+    .recipes-list-header {
+        margin-bottom: 40px;
+    }
+
+    .recipes-list {
+        width: 100%;
+    }
+
+    .recipes-list__items {
+        gap: 32px;
+    }
+
+    .recipes-list-item {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .recipes-list-item__left {
+        gap: 4px;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .recipes-list-item__index {
+        display: none;
+    }
+
+    .recipes-list-item__index-mobile {
+        display: inline-flex;
+    }   
+
+    .recipes-list-item__title {
+        display: none;
+    }
+
+    .recipes-list-item__title-mobile {
+        display: inline;
+    }
+
+    .recipes-list-item__content {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .recipes-list-item__tag--icon {
+        font-size: 16px;
+    }
+
+    .recipes-list-page__cta-btn-mobile {
+        display: flex;
+    }
 }

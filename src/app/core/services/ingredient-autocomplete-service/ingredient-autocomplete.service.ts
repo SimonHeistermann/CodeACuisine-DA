@@ -83,4 +83,6 @@ export class IngredientAutocompleteService {
     }
     return dp[n];
   }
+
+  constructor() {}
 }

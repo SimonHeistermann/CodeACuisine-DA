@@ -23,7 +23,6 @@ import { StateService } from '../state-service/state.service';
 
 @Injectable({ providedIn: 'root' })
 export class FirestoreRecipeService {
-  /** Name der Collection in Firestore */
   private readonly collectionName = 'recipes';
 
   constructor(
@@ -31,33 +30,24 @@ export class FirestoreRecipeService {
     private readonly state: StateService,
   ) {}
 
-  /** Referenz auf die "recipes"-Collection */
   private recipesCollection() {
     return collection(this.firestore, this.collectionName);
   }
 
-  // =====================================================
-  // Signatur-Logik (Duplikate erkennen)
-  // =====================================================
-
-  /** Öffentliche Helper-Funktion: Signatur holen oder erzeugen */
   getOrCreateSignature(recipe: GeneratedRecipe): string {
     if (recipe.recipeSignature) {
       return recipe.recipeSignature;
     }
-
     const signature = this.buildRecipeSignature(recipe);
     recipe.recipeSignature = signature;
     return signature;
   }
 
-  /** Erzeugt einen deterministischen Key für alle Zutaten */
   private buildIngredientsKey(recipe: GeneratedRecipe): string {
     const allIngredients: RecipeIngredient[] = [
       ...recipe.ingredients.yourIngredients,
       ...recipe.ingredients.extraIngredients,
     ];
-
     return allIngredients
       .map((ingredient) => this.normalizeIngredient(ingredient))
       .sort()
@@ -71,7 +61,6 @@ export class FirestoreRecipeService {
       ingredient.unit?.abbreviation ||
       ingredient.unit?.name ||
       '';
-
     return `${name}|${size}|${unit}`;
   }
 
@@ -83,7 +72,6 @@ export class FirestoreRecipeService {
     const diet = (prefs.dietPreferences ?? '').toLowerCase();
     const cooks = String(recipe.cooksAmount ?? 0);
     const ingredientsKey = this.buildIngredientsKey(recipe);
-
     return [title, cuisine, time, diet, cooks, ingredientsKey].join(
       '||',
     );
@@ -95,11 +83,9 @@ export class FirestoreRecipeService {
     const colRef = this.recipesCollection();
     const qRef = query(colRef, where('recipeSignature', '==', signature));
     const snap = await getDocs(qRef);
-
     if (snap.empty) {
       return null;
     }
-
     const docSnap = snap.docs[0];
     return {
       id: docSnap.id,
@@ -107,9 +93,6 @@ export class FirestoreRecipeService {
     };
   }
 
-  /**
-   * Legt ein neues Rezept-Dokument an und gibt die Firestore-ID zurück.
-   */
   private async createRecipeDoc(
     recipe: GeneratedRecipe,
     signature: string,
@@ -122,7 +105,6 @@ export class FirestoreRecipeService {
       likes,
       options,
     );
-
     const docRef = await addDoc(this.recipesCollection(), payload);
     return docRef.id;
   }
@@ -142,15 +124,6 @@ export class FirestoreRecipeService {
     };
   }
 
-  // =====================================================
-  // Auto-Save nach Generierung
-  // =====================================================
-
-  /**
-   * Nimmt die frisch generierten Rezepte,
-   * sorgt für Eintrag in Firestore
-   * und gibt sie mit korrektem likes-Wert & Firestore-ID zurück.
-   */
   async syncGeneratedRecipes(
     recipes: GeneratedRecipe[],
   ): Promise<GeneratedRecipe[]> {
@@ -166,11 +139,6 @@ export class FirestoreRecipeService {
     return updated;
   }
 
-  /**
-   * Sorgt dafür, dass das Rezept in Firestore existiert.
-   * Falls schon vorhanden → likes & id aus DB übernehmen.
-   * Falls neu → anlegen mit likes (Default 0) und Firestore-ID zurückgeben.
-   */
   async ensureRecipeInCookbook(
     recipe: GeneratedRecipe,
     options?: { isSeed?: boolean },
@@ -213,17 +181,6 @@ export class FirestoreRecipeService {
     };
   }
 
-  // =====================================================
-  // Likes / Favorites
-  // =====================================================
-
-  /**
-   * Aktualisiert den Like-Status eines Rezepts.
-   * isFavorite = true  → likes +1
-   * isFavorite = false → likes -1 (mind. 0)
-   *
-   * Gibt den neuen likes-Wert zurück.
-   */
   async updateLikesForRecipe(
     recipe: GeneratedRecipe,
     isFavorite: boolean,
@@ -275,46 +232,27 @@ export class FirestoreRecipeService {
         isSeed: false,
       },
     );
-
-    // sicherheitshalber id im übergebenen Objekt setzen, falls du es weiter nutzt
     recipe.id = docId;
-
     return likes;
   }
-
-  // =====================================================
-  // Einzelnes Rezept laden
-  // =====================================================
 
   async getRecipeById(id: string): Promise<GeneratedRecipe | null> {
     const docRef = this.buildDocRef(id);
     const snap = await getDoc(docRef);
-
     if (!snap.exists()) {
       return null;
     }
-
     return {
       id: snap.id,
       ...(snap.data() as GeneratedRecipe),
     };
   }
 
-  // =====================================================
-  // Cookbook lesen (z.B. Cookbooks-Seite)
-  // =====================================================
-
-  /**
-   * Lädt alle Cookbook-Rezepte aus Firestore
-   * und schreibt sie in den State.
-   * Optional: nach Cuisine filtern.
-   */
   loadCookbook(cuisine?: string): Observable<GeneratedRecipe[]> {
     const colRef = this.recipesCollection();
     const ref = cuisine
       ? query(colRef, where('preferences.cuisine', '==', cuisine))
       : colRef;
-
     return from(getDocs(ref)).pipe(
       map((snap) =>
         snap.docs.map(
@@ -336,13 +274,9 @@ export class FirestoreRecipeService {
     return recipes;
   }
 
-  /**
-   * Lädt nur Seed-Rezepte – z.B. für initial vorgefülltes Cookbook.
-   */
   loadSeedRecipes(): Observable<GeneratedRecipe[]> {
     const colRef = this.recipesCollection();
     const qRef = query(colRef, where('isSeedRecipe', '==', true));
-
     return from(getDocs(qRef)).pipe(
       map((snap) =>
         snap.docs.map(

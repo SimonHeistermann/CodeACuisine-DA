@@ -29,7 +29,6 @@
     @if (selectedRecipe) {
       <section class="recipe-detail">
         <div class="recipe-detail__card">
-          <!-- ===== Top summary block ===== -->
           <div class="recipe-detail__summary">
             <div class="recipe-detail__summary-main">
               <div class="recipe-detail__summary-meta">
@@ -146,7 +145,6 @@
           </div>
 
           <div class="recipe__details">
-            <!-- ===== Ingredients ===== -->
             <section class="recipe-detail__section">
               <div class="recipe-detail__section-banner">
                 <img
@@ -154,12 +152,20 @@
                   alt="Ingredients banner"
                   class="recipe-detail__section-banner-image"
                 />
+                <img
+                  src="img/hero_ingredients_mobile.png"
+                  alt="Ingredients banner"
+                  class="recipe-detail__section-banner-image-mobile"
+                />
                 <h2 class="recipe-detail__section-banner-title">
                   Ingredients
                 </h2>
               </div>
 
-              <div class="recipe-detail__ingredients">
+              <div
+                class="recipe-detail__ingredients"
+                [class.recipe-detail__ingredients--collapsed]="!isIngredientsOpen"
+              >
                 <div class="recipe-detail__ingredients-column">
                   <h3 class="recipe-detail__ingredients-heading">
                     Your ingredients
@@ -172,7 +178,7 @@
                         <span
                           class="recipe-detail__ingredients-amount"
                         >
-                          {{ formatIngredientAmount(ingredient) }}
+                          • {{ formatIngredientAmount(ingredient) }}
                         </span>
                         <span
                           class="recipe-detail__ingredients-name"
@@ -196,7 +202,7 @@
                         <span
                           class="recipe-detail__ingredients-amount"
                         >
-                          {{ formatIngredientAmount(ingredient) }}
+                          • {{ formatIngredientAmount(ingredient) }}
                         </span>
                         <span
                           class="recipe-detail__ingredients-name"
@@ -208,15 +214,33 @@
                   </ul>
                 </div>
               </div>
+              <button
+                type="button"
+                class="recipe-detail__toggle"
+                (click)="toggleIngredients()"
+              >
+                <span>
+                  {{ isIngredientsOpen ? 'Hide ingredients' : 'Show ingredients' }}
+                </span>
+                <img
+                  src="img/arrow_drop_down.png"
+                  alt=""
+                  class="recipe-detail__toggle-icon"
+                  [class.recipe-detail__toggle-icon--closed]="!isIngredientsOpen"
+                />
+              </button>
             </section>
-
-            <!-- ===== Directions ===== -->
             <section class="recipe-detail__section">
               <div class="recipe-detail__section-banner-directions">
                 <img
                   src="img/hero_directions.png"
                   alt="Directions banner"
                   class="recipe-detail__section-banner-image-directions"
+                />
+                <img
+                  src="img/hero_directions_mobile.png"
+                  alt="Directions banner"
+                  class="recipe-detail__section-banner-image-directions-mobile"
                 />
                 <h2
                   class="recipe-detail__section-banner-title-directions"
@@ -225,7 +249,10 @@
                 </h2>
               </div>
 
-              <div class="recipe-detail__directions">
+              <div
+                class="recipe-detail__directions"
+                [class.recipe-detail__directions--collapsed]="!isDirectionsOpen"
+              >
                 @for (direction of selectedRecipe.directions; track $index) {
                   <article class="recipe-detail__direction-item">
                     <header class="recipe-detail__direction-header">
@@ -255,10 +282,23 @@
                   </article>
                 }
               </div>
+              <button
+                type="button"
+                class="recipe-detail__toggle"
+                (click)="toggleDirections()"
+              >
+                <span>
+                  {{ isDirectionsOpen ? 'Hide directions' : 'Show directions' }}
+                </span>
+                <img
+                  src="img/arrow_drop_down.png"
+                  alt=""
+                  class="recipe-detail__toggle-icon"
+                  [class.recipe-detail__toggle-icon--closed]="!isDirectionsOpen"
+                />
+              </button>
             </section>
           </div>
-
-          <!-- ===== Finished CTA inside card ===== -->
           <div class="recipe-detail__finished">
             <div class="recipe-detail__finished-inner">
               <span class="recipe-detail__finished-question">
@@ -289,8 +329,6 @@
             </button>
           </div>
         </div>
-
-        <!-- ===== CTA block below card ===== -->
         <footer class="recipe-detail__cta">
           <span class="recipe-detail__cta-text">
             Find inspiration for your next culinary adventure!

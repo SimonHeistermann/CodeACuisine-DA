@@ -57,10 +57,6 @@ export interface RecipeStep {
       extraIngredients: RecipeIngredient[];
     };
     directions: RecipeStep[];
-  
-    /** Globale Anzahl an Likes über alle User */
     likes?: number;
-  
-    /** Deterministische Signatur zur Duplikats-Erkennung */
     recipeSignature?: string;
 }  

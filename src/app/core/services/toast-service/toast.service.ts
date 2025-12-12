@@ -54,4 +54,6 @@ export class ToastService {
       this.hideTimeoutId = null;
     }, durationMs);
   }
+
+  constructor() {}
 }

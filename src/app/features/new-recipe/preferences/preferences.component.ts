@@ -73,8 +73,6 @@ export class PreferencesComponent {
     this.recipeRequirements[key] = value;
   }
 
-  // =================== private Helper ===================
-
   private hasNoIngredients(): boolean {
     return this.recipeRequirements.ingredients.length === 0;
   }

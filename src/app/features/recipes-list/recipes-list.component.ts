@@ -109,8 +109,6 @@ export class RecipesListComponent implements OnInit {
     this.router.navigate(['/cookbook', recipe.id]);
   }
 
-  // ========= Pagination-Logik =========
-
   get pageItems(): PageItem[] {
     if (this.totalPages <= 5) {
       return Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -141,14 +139,11 @@ export class RecipesListComponent implements OnInit {
     ];
   }
 
-  // nimmt jetzt PageItem und sortiert selbst aus
   goToPage(page: PageItem): void {
     if (page === 'ellipsis') {
       return;
     }
-
     const pageNumber = page as number;
-
     if (
       pageNumber < 1 ||
       pageNumber > this.totalPages ||
@@ -156,7 +151,6 @@ export class RecipesListComponent implements OnInit {
     ) {
       return;
     }
-
     this.currentPage = pageNumber;
     this.applyPagination();
   }

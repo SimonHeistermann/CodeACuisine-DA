@@ -27,13 +27,14 @@ export class RecipeDetailComponent implements OnInit {
   isFavorite = false;
   isFavoriteHovered = false;
 
+  isIngredientsOpen = true;
+  isDirectionsOpen = true;
+
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly state: StateService,
     private readonly firestoreRecipes: FirestoreRecipeService,
   ) {}
-
-  // ============ Lifecycle ============
 
   ngOnInit(): void {
     const id = this.activatedRoute.snapshot.paramMap.get('id');
@@ -42,11 +43,6 @@ export class RecipeDetailComponent implements OnInit {
     this.initRecipeById(id);
   }
 
-  /**
-   * Rezept über Firestore-ID initialisieren:
-   * 1. aus State (generatedRecipes oder allRecipes)
-   * 2. Fallback: Firestore getRecipeById
-   */
   private async initRecipeById(id: string): Promise<void> {
     const fromGenerated =
       this.state.generatedRecipes?.find((r) => r.id === id) ?? null;
@@ -101,8 +97,6 @@ export class RecipeDetailComponent implements OnInit {
     this.syncLikesFromBackend(this.selectedRecipe);
   }
 
-  // ============ Computed Properties ============
-
   get hasDietPreference(): boolean {
     const pref = this.selectedRecipe?.preferences?.dietPreferences;
     return !!pref && pref !== 'no preferences';
@@ -111,8 +105,6 @@ export class RecipeDetailComponent implements OnInit {
   get likesCount(): number {
     return this.selectedRecipe?.likes ?? 0;
   }
-
-  // ============ UI Helper ============
 
   formatIngredientAmount(ingredient: RecipeIngredient): string {
     const amount = ingredient.servingSize;
@@ -155,14 +147,19 @@ export class RecipeDetailComponent implements OnInit {
     }
   }
 
-  /** Liefert das passende Icon je nach State (normal, hover, clicked) */
   get favoriteIcon(): string {
     if (this.isFavorite) return 'img/heart_green_clicked.png';
     if (this.isFavoriteHovered) return 'img/heart_green_hover.png';
     return 'img/heart_green.png';
   }
 
-  // ============ Favorites / Likes ============
+  toggleIngredients(): void {
+    this.isIngredientsOpen = !this.isIngredientsOpen;
+  }
+
+  toggleDirections(): void {
+    this.isDirectionsOpen = !this.isDirectionsOpen;
+  }
 
   async onToggleFavorite(): Promise<void> {
     if (!this.selectedRecipe || !this.selectedRecipe.recipeSignature) {

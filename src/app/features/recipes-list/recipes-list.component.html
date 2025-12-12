@@ -81,6 +81,9 @@
                     </span>
   
                     <div class="recipes-list-item__content">
+                        <span class="recipes-list-item__index-mobile">
+                            {{ indexOffset + i + 1 }}.
+                        </span>
                       <div class="recipes-list-item__meta">
                         <img
                           src="img/clock_green.png"
@@ -96,6 +99,9 @@
                         {{ recipe.title }}
                       </h2>
                     </div>
+                    <h2 class="recipes-list-item__title-mobile">
+                        {{ recipe.title }}
+                      </h2>
                   </div>
   
                   <div class="recipes-list-item__tags">
@@ -178,6 +184,12 @@
             </nav>
           }
         }
+        <a
+          class="recipes-list-page__cta-btn-mobile"
+          [routerLink]="['/generate-recipe']"
+        >
+          Generate a recipe
+        </a>
       </section>
     </div>
 </main>  

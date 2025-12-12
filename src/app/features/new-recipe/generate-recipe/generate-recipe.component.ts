@@ -49,8 +49,6 @@ export class GenerateRecipeComponent {
     return this.state.recipeRequirements.ingredients;
   }
 
-  // ================ UI-Events / Logik ================
-
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.isClickInsideComponent(event)) {
@@ -149,8 +147,6 @@ export class GenerateRecipeComponent {
       this.ingredients.splice(index, 1);
     }
   }
-
-  // ================ Helper ================
 
   private isClickInsideComponent(event: MouseEvent): boolean {
     const target = event.target as Node | null;
