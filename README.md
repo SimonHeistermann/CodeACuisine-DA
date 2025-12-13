@@ -115,22 +115,14 @@ All recipes—generated or liked—are stored in Firestore under a single consis
 
 - Signature-based identity system for deduplication
 
-- Database
-
-- Firebase Firestore, including:
-
-- recipes collection
-
-- recipeSignature for deduplication
-
-- likes using Firestore increment()
+- Firebase Firestore, including
 
 ## 🏛️ Project Architecture
 ```bash
 src/
  ├── app/
  │   ├── core/
- │   │    ├── models/               // Recipe data structures
+ │   │    ├── models/               
  │   │    ├── services/
  │   │    │     ├── generate-recipe.service.ts
  │   │    │     ├── firebase-recipe.service.ts
