@@ -10,10 +10,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1952,
-        -16
+        -1520,
+        16
       ],
-      "id": "1e800dc9-88ca-405f-8208-e7c3f7fa3278",
+      "id": "100272c3-c546-4271-a85f-323c1e2b36d8",
       "name": "Webhook",
       "webhookId": "584d5e6b-0e54-4d64-9df6-5212b4d9c912"
     },
@@ -26,10 +26,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        -160,
-        80
+        272,
+        112
       ],
-      "id": "3747ed31-e247-4d07-a736-5adab0fad7a7",
+      "id": "43049529-82c9-4452-95ec-c76e1e3c0c1a",
       "name": "AI Agent"
     },
     {
@@ -39,10 +39,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        192,
-        80
+        624,
+        112
       ],
-      "id": "ef7fd791-8358-4824-941b-8a0d35f80eb3",
+      "id": "88a7e55d-0182-4a67-83b3-c69523289094",
       "name": "Normalize & Validate Recipes"
     },
     {
@@ -54,10 +54,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        640,
-        80
+        1072,
+        112
       ],
-      "id": "198defe3-8939-499c-8404-6f0d4df85e4a",
+      "id": "026049b9-1ce5-459f-bb12-07e70f85573b",
       "name": "Respond to Webhook"
     },
     {
@@ -67,14 +67,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -96,
-        304
+        336,
+        336
       ],
-      "id": "966d0c40-debd-4f6d-af04-e47646c8cd03",
+      "id": "ef95b278-cf43-41b7-838b-bb1e6765a933",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
-          "id": "CgCWaGS9twzl8okn",
+          "id": "2AVsosIQMcC3gtrV",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
@@ -86,10 +86,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1504,
-        -16
+        -1072,
+        16
       ],
-      "id": "9c86f386-096b-44ec-85d5-426ec499ad61",
+      "id": "b1437fc9-ccf4-4c7e-9e50-c6ec66badf82",
       "name": "Extract & Normalize Client IP (IPv4/IPv6)"
     },
     {
@@ -100,14 +100,14 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -1280,
-        -16
+        -848,
+        16
       ],
-      "id": "f028025a-9793-4d77-89f6-c17af5fb54a8",
+      "id": "1da301cb-fbcf-4d4e-af4c-708a8aa39b2f",
       "name": "Redis INCR – IP Quota (daily)",
       "credentials": {
         "redis": {
-          "id": "lwoIKYvF8pVhvbKL",
+          "id": "VIL9dzixG8dimu32",
           "name": "Redis account"
         }
       }
@@ -120,14 +120,14 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -1056,
-        -16
+        -624,
+        16
       ],
-      "id": "00a7d95d-dcd8-46e5-a9d5-d3ef832164c2",
+      "id": "ce787d5c-a1cf-469f-b1f6-9888a055b304",
       "name": "Redis INCR – System Quota (daily)",
       "credentials": {
         "redis": {
-          "id": "lwoIKYvF8pVhvbKL",
+          "id": "VIL9dzixG8dimu32",
           "name": "Redis account"
         }
       }
@@ -140,14 +140,14 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        -832,
-        -16
+        -400,
+        16
       ],
-      "id": "66736fd0-5d19-46d9-889b-e0ea42895e14",
+      "id": "f97d3d45-4656-40fd-be2f-3ac65a7d3b43",
       "name": "Redis INCR – Rate Limit (per minute)",
       "credentials": {
         "redis": {
-          "id": "lwoIKYvF8pVhvbKL",
+          "id": "VIL9dzixG8dimu32",
           "name": "Redis account"
         }
       }
@@ -198,10 +198,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -608,
-        -16
+        -176,
+        16
       ],
-      "id": "26b9085d-0ee4-4518-be30-3c04358a8d9d",
+      "id": "ac6275fd-0eef-492b-8843-a2f8896d8495",
       "name": "If"
     },
     {
@@ -215,10 +215,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        -384,
-        -112
+        48,
+        -80
       ],
-      "id": "5e586ca8-25aa-4d38-86f8-b48caec5a419",
+      "id": "1dd27194-b183-4e3d-b5f4-93f77efc3e67",
       "name": "Respond 429 – Quota/Rate exceeded"
     },
     {
@@ -228,10 +228,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        416,
-        80
+        848,
+        112
       ],
-      "id": "10044499-9a04-4925-8981-2cadafded81f",
+      "id": "e0de5966-8c72-4d7b-b800-6fa0a8475758",
       "name": "Build Success Response (recipes + quota)"
     },
     {
@@ -241,10 +241,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1728,
-        -16
+        -1296,
+        16
       ],
-      "id": "b14721ec-ac9f-4b36-b77e-5f7d6b631b76",
+      "id": "59e21cde-48d4-4ab1-b7fc-e6895033fc9b",
       "name": "Validate & Normalize Input1"
     }
   ],
@@ -380,6 +380,7 @@
   },
   "pinData": {},
   "meta": {
-    "instanceId": "18c08fb34b3b741bb865416cbc33536b72bef01fc90168069f6640ca14a0e1ec"
+    "templateCredsSetupCompleted": true,
+    "instanceId": "90513134489b0c5692dc97922cf8488b6f51bcfa91783d5bc70f0252b2ac81cc"
   }
 }
