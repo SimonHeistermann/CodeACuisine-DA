@@ -811,3 +811,25 @@
     display: none;
   }
 }
+
+@media (max-width: 360px) {
+  .recipe-detail__nutrition-grid {
+    gap: 16px;
+  }
+
+  .recipe-detail__nutrition-label {
+    font-size: 16px;
+    line-height: 100%;
+    font-weight: 600;
+  }
+
+  .recipe-detail__nutrition-value {
+    font-size: 16px;
+    line-height: 100%;
+    font-weight: 600;
+  } 
+
+  .recipe-detail__tags {
+    gap: 4px;
+  }
+}

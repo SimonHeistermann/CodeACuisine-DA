@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 
@@ -69,7 +69,6 @@ export class GenerateRecipeComponent {
    */
   constructor(
     private readonly state: StateService,
-    private readonly elementRef: ElementRef<HTMLElement>,
     private readonly ingredientAutocomplete: IngredientAutocompleteService,
   ) {}
 
@@ -90,18 +89,26 @@ export class GenerateRecipeComponent {
   /**
    * Global document click listener.
    *
-   * Closes all dropdowns and suggestion lists when the user clicks outside
-   * of this component.
-   *
-   * @param event Mouse click event.
+   * Closes dropdowns and suggestions when the user clicks outside
+   * of dropdowns / ingredient input areas.
    */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.isClickInsideComponent(event)) {
-      this.closeAllDropdowns();
-      this.ingredientSuggestions = [];
-      this.inlineSuggestion = '';
-    }
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    if (this.isClickInsideAnyUnitDropdown(target)) return;
+    if (this.isClickInsideIngredientAutocomplete(target)) return;
+    this.closeAllDropdowns();
+    this.ingredientSuggestions = [];
+    this.inlineSuggestion = '';
+  }
+
+  private isClickInsideAnyUnitDropdown(target: HTMLElement): boolean {
+    return Boolean(target.closest('.generate__pill-dropdown'));
+  }
+
+  private isClickInsideIngredientAutocomplete(target: HTMLElement): boolean {
+    return Boolean(target.closest('.generate__ingredient-input-wrapper'));
   }
 
   /**
@@ -255,19 +262,6 @@ export class GenerateRecipeComponent {
     if (index > -1) {
       this.ingredients.splice(index, 1);
     }
-  }
-
-  /**
-   * Determines whether a click event occurred inside this component.
-   *
-   * @param event Mouse click event.
-   * @returns True if the click target is inside the component.
-   */
-  private isClickInsideComponent(event: MouseEvent): boolean {
-    const target = event.target as Node | null;
-    if (!target) return false;
-
-    return this.elementRef.nativeElement.contains(target);
   }
 
   /**

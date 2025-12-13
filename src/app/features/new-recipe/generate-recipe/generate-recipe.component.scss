@@ -190,7 +190,7 @@
     background-color: $primary-cream;
     border-radius: 999px;
     padding: 3px 15px;
-    height: 36px;
+    height: 30px;
     font-size: 16px;
     font-weight: 500;
     font-family: fonts.$font-family-quicksand;
@@ -201,7 +201,7 @@
     width: 96px;
     min-width: 61px;
     text-align: center;
-    height: 36px;
+    height: 30px;
     border-radius: 48px;
     font-size: 18px;
     line-height: 100%;
@@ -243,7 +243,7 @@
   font-weight: 500;
   color: $dark-green;
   cursor: pointer;
-  height: 36px;
+  height: 30px;
 }
 
 .generate__pill-arrow {
@@ -393,6 +393,34 @@
   margin-top: 32px;
 }
 
+@media (max-width: 1200px) {
+  .generate__list-item--edit {
+    height: 70px;
+    align-items: flex-start;
+  }
+
+  .generate__list-main-edit {
+    flex-direction: column-reverse;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .generate__list-item--edit:hover {
+    background-color: transparent !important;
+  }
+
+  .generate__list-name-input {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+
+  .generate__pill-input--number {
+    padding: 3px 15px;
+    width: 61px;
+  }
+}
+
 @media (max-width: 920px) {
   .generate-page__header {
     height: 52px;
@@ -515,12 +543,12 @@
   }
 
   .generate__list-item--edit {
-    height: 70px;
-    align-items: flex-start;
+    height: 30px;
+    align-items: center;
   }
 
   .generate__list-main-edit {
-    flex-direction: column-reverse;
+    flex-direction: row;
     gap: 8px;
   }
 
@@ -543,5 +571,33 @@
 @media (max-width: 620px) {
   .generate-page__inner {
     padding: 0px 16px 32px 16px;
+  }
+}
+
+@media (max-width: 500px) {
+  .generate__list-item--edit {
+    height: 70px;
+    align-items: flex-start;
+  }
+
+  .generate__list-main-edit {
+    flex-direction: column-reverse;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .generate__list-item--edit:hover {
+    background-color: transparent !important;
+  }
+
+  .generate__list-name-input {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+
+  .generate__pill-input--number {
+    padding: 3px 15px;
+    width: 61px;
   }
 }

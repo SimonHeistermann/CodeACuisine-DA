@@ -24,5 +24,5 @@ export const environment: Environment = {
    * Replace this URL with the production backend endpoint
    * before deploying to a live environment.
    */
-  webhookUrl: 'http://localhost:5678/webhook/generate-recipe',
+  webhookUrl: 'https://n8n-recipe.onrender.com/webhook/generate-recipe',
 };

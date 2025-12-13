@@ -23,5 +23,5 @@ export const environment: Environment = {
    *
    * In development, this usually points to a local backend instance.
    */
-  webhookUrl: 'http://localhost:5678/webhook/generate-recipe',
+  webhookUrl: 'https://n8n-recipe.onrender.com/webhook/generate-recipe',
 };
