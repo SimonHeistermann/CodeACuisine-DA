@@ -8,6 +8,17 @@ import {
 } from '../../../core/models/recipe.model';
 import { StateService } from '../../../core/services/state-service/state.service';
 
+/**
+ * Minimal requirements snapshot used by the results UI.
+ *
+ * This intentionally excludes ingredients so the UI can still display
+ * the selected tags even after inputs were reset for the next run.
+ */
+type RecipeRequirementsSnapshot = Pick<
+  RecipeRequirements,
+  'cookingTime' | 'cuisine' | 'dietPreferences' | 'portionsAmount' | 'cooksAmount'
+>;
+
 @Component({
   selector: 'app-recipe-results',
   standalone: true,
@@ -16,21 +27,22 @@ import { StateService } from '../../../core/services/state-service/state.service
   styleUrl: './recipe-results.component.scss',
 })
 /**
- * Displays the list of generated recipe results.
+ * Displays the list of generated recipes for the most recent successful run.
+ *
+ * Data sources:
+ * - `generatedRecipes` are read from `StateService`
+ * - The requirements shown as tags are read from `lastGeneratedRequirements`
  *
  * Responsibilities:
- * - Render recipes generated in the current session
- * - Display contextual information based on selected requirements
- * - Provide navigation to individual recipe detail views
- *
- * This component is read-only and relies entirely on `StateService`
- * for its data source.
+ * - Render generated recipe cards
+ * - Render preference tags based on the stored requirements snapshot
+ * - Navigate to the recipe detail view for a selected recipe
  */
 export class RecipeResultsComponent {
   /**
    * Creates the recipe results component.
    *
-   * @param state Central application state service.
+   * @param state Central application state service (results + requirements snapshot).
    * @param router Angular router used for navigation.
    */
   constructor(
@@ -39,23 +51,34 @@ export class RecipeResultsComponent {
   ) {}
 
   /**
-   * Returns the list of generated recipes for the current session.
+   * Returns the recipes from the latest successful generation.
    */
   get recipes(): GeneratedRecipe[] {
     return this.state.generatedRecipes ?? [];
   }
 
   /**
-   * Returns the recipe requirements used to generate the results.
+   * Returns the requirements snapshot used for displaying result tags.
+   *
+   * If no snapshot is available (e.g. direct navigation), a safe empty snapshot
+   * is returned to keep template bindings stable.
    */
-  get requirements(): RecipeRequirements {
-    return this.state.recipeRequirements;
+  get requirements(): RecipeRequirementsSnapshot {
+    return (
+      this.state.lastGeneratedRequirements ?? {
+        cookingTime: '',
+        cuisine: '',
+        dietPreferences: '',
+        portionsAmount: 0,
+        cooksAmount: 0,
+      }
+    );
   }
 
   /**
-   * Indicates whether a meaningful diet preference was selected.
+   * Indicates whether a meaningful diet preference is selected.
    *
-   * The value `'no preferences'` is treated as not having a diet preference.
+   * `'no preferences'` is treated as "no diet preference".
    */
   get hasDietPreference(): boolean {
     return (

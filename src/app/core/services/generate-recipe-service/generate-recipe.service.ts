@@ -30,7 +30,8 @@ const webhookUrl = environment.webhookUrl;
  * Key responsibilities:
  * - Sends the current `recipeRequirements` to the configured webhook endpoint.
  * - Applies success side effects (quota normalization + toast messaging).
- * - Persists/syncs returned recipes into Firestore and stores them in application state.
+ * - Syncs returned recipes into Firestore and stores them in application state.
+ * - Snapshots the selected preferences for result UI tags, then resets inputs for the next run.
  * - Handles quota errors (HTTP 429) and displays user-friendly toast messages.
  */
 export class GenerateRecipeService {
@@ -56,7 +57,8 @@ export class GenerateRecipeService {
    * 1) POST current requirements to the webhook.
    * 2) On success, normalize and store quota + show a success toast.
    * 3) Sync returned recipes to Firestore, then store them in state.
-   * 4) On error, detect quota exceeded (HTTP 429) and show appropriate messaging.
+   * 4) Snapshot the selected preferences for the results UI and reset inputs.
+   * 5) On error, detect quota exceeded (HTTP 429 with a quota body) and show appropriate messaging.
    *
    * @returns Observable that emits the final (synced) list of generated recipes.
    */
@@ -66,6 +68,11 @@ export class GenerateRecipeService {
       .pipe(
         tap((res) => this.applySuccessSideEffects(res)),
         switchMap((res) => this.syncAndStoreRecipes(res.recipes)),
+        tap(() => {
+          this.state.lastGeneratedRequirements =
+            this.state.snapshotCurrentRequirements();
+          this.state.resetRecipeRequirements();
+        }),
         catchError((err) => this.handleRequestError(err)),
       );
   }
@@ -95,16 +102,15 @@ export class GenerateRecipeService {
   }
 
   /**
-   * Syncs the generated recipes into Firestore and stores the synced result in state.
+   * Syncs generated recipes into Firestore and stores the synced result in state.
    *
-   * Firestore sync ensures recipe ids/signatures exist and that the returned objects
-   * reflect persisted state.
-   *
-   * @param recipes The raw recipes returned by the generation webhook.
+   * @param recipes Raw recipes returned by the generation webhook (may be undefined/null).
    * @returns Observable emitting the synced recipe list.
    */
-  private syncAndStoreRecipes(recipes: GeneratedRecipe[]): Observable<GeneratedRecipe[]> {
-    return from(this.firestore.syncGeneratedRecipes(recipes)).pipe(
+  private syncAndStoreRecipes(
+    recipes: GeneratedRecipe[],
+  ): Observable<GeneratedRecipe[]> {
+    return from(this.firestore.syncGeneratedRecipes(recipes ?? [])).pipe(
       tap((synced) => (this.state.generatedRecipes = synced)),
       map((synced) => synced),
     );
@@ -136,7 +142,10 @@ export class GenerateRecipeService {
    * @param body Parsed error body if it matches the expected quota error shape.
    * @returns True if HTTP status is 429 and the body contains quota information.
    */
-  private isQuotaExceeded(err: HttpErrorResponse, body?: QuotaErrorResponse): boolean {
+  private isQuotaExceeded(
+    err: HttpErrorResponse,
+    body?: QuotaErrorResponse,
+  ): boolean {
     return err.status === 429 && !!body?.quota;
   }
 

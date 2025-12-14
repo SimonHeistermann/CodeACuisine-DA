@@ -1,6 +1,5 @@
 <main class="recipes-list-page">
     <div class="recipes-list-page__inner">
-      <!-- Header mit Logo & CTA -->
       <header class="recipes-list-page__header">
         <a [routerLink]="['/']">
           <img
@@ -32,8 +31,6 @@
           Generate a recipe
         </a>
       </div>
-  
-      <!-- Header-Banner mit Cuisine -->
       <section class="recipes-list-header">
         @if (cuisineHeaderImg; as headerImg) {
           <div class="recipes-list-header__image-wrapper">
@@ -51,8 +48,6 @@
           </div>
         }
       </section>
-  
-      <!-- Rezepte-Liste -->
       <section class="recipes-list">
         @if (isLoading) {
           <div class="recipes-list__empty">
@@ -91,7 +86,7 @@
                           class="recipes-list-item__meta-icon"
                         />
                         <span class="recipes-list-item__meta-text">
-                          Cooking time: {{ recipe.cookingTime }}
+                          Cooking time: {{ recipe.cookingTimeText }}
                         </span>
                       </div>
   
@@ -131,15 +126,13 @@
                         alt="likes"
                         class="recipes-list-item__tag-heart-icon"
                       />
-                      {{ recipe.likes ?? 0 }}
+                      {{ recipe.likes }}
                     </span>
                   </div>
                 </button>
               </li>
             }
           </ol>
-  
-          <!-- Pagination -->
           @if (totalPages > 1) {
             <nav
               class="recipes-list__pagination"

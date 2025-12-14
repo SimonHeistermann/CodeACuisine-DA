@@ -30,34 +30,11 @@ export interface NutritionalInformation {
     carbs: number;
 }
   
-  export interface RecipePreferences {
-    cookingTime?: string;
-    cuisine?: string;
-    dietPreferences?: string;
-}
-  
 export interface RecipeStep {
     order: number;
     title: string;
     description: string;
     cook: number;
-}
-  
-  export interface GeneratedRecipe {
-    id?: string;
-  
-    title: string;
-    cookingTime: string;
-    nutritionalInformation: NutritionalInformation;
-    preferences: RecipePreferences;
-    cooksAmount: number;
-    ingredients: {
-      yourIngredients: RecipeIngredient[];
-      extraIngredients: RecipeIngredient[];
-    };
-    directions: RecipeStep[];
-    likes?: number;
-    recipeSignature?: string;
 }
 
 export interface QuotaInfo {
@@ -83,3 +60,37 @@ export interface QuotaErrorResponse {
     message: string;
     quota?: QuotaInfo;
 }  
+
+export type CookingTimeCategory = 'quick' | 'medium' | 'complex';
+export type Cuisine = 'german' | 'italian' | 'indian' | 'japanese' | 'gourmet' | 'fusion';
+export type DietPreference = 'vegetarian' | 'vegan' | 'keto' | 'no preferences';
+
+export interface RecipePreferences {
+  cookingTime: CookingTimeCategory;
+  cuisine: Cuisine;
+  dietPreferences: DietPreference;
+}
+
+export interface GeneratedRecipe {
+  id?: string;
+  title: string;
+  cookingTimeText: string;
+  cookingTimeMinutes?: number;
+  nutritionalInformation: NutritionalInformation;
+  preferences: RecipePreferences;
+  cooksAmount: number;
+  ingredients: {
+    yourIngredients: RecipeIngredient[];
+    extraIngredients: RecipeIngredient[];
+  };
+  directions: RecipeStep[];
+  likes: number;
+  recipeSignature: string;
+  createdAt: any; 
+  isSeedRecipe: boolean;
+}
+
+export type RecipeRequirementsSnapshot = Pick<
+  RecipeRequirements,
+  'cookingTime' | 'cuisine' | 'dietPreferences' | 'portionsAmount' | 'cooksAmount'
+>;

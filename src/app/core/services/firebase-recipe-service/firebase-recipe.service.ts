@@ -15,29 +15,39 @@ import {
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { GeneratedRecipe, RecipeIngredient } from '../../models/recipe.model';
+import {
+  GeneratedRecipe,
+  RecipeIngredient,
+  CookingTimeCategory,
+  Cuisine,
+  DietPreference,
+  RecipePreferences,
+} from '../../models/recipe.model';
 import { StateService } from '../state-service/state.service';
 
 @Injectable({ providedIn: 'root' })
 /**
- * Service responsible for persisting and retrieving `GeneratedRecipe` entities in Firestore.
+ * Firestore persistence layer for recipes.
  *
- * Key responsibilities:
- * - Ensure generated recipes exist in the cookbook collection (create if missing, reuse if present).
- * - Maintain a deterministic `recipeSignature` to identify "same recipe" across sessions.
- * - Update and compute likes using atomic Firestore increments.
- * - Load cookbook recipes (optionally filtered by cuisine) and seed recipes.
- * - Synchronize loaded recipes into application state via `StateService`.
+ * Responsibilities:
+ * - Persist generated recipes into a Firestore collection (create or reuse by signature)
+ * - Compute a deterministic `recipeSignature` to identify "equivalent" recipes across sessions
+ * - Maintain likes using atomic increments
+ * - Load cookbook and seed recipes and normalize preference values for UI consistency
+ *
+ * Notes:
+ * - Preferences are canonicalized against UI option sets to keep stored data stable.
+ * - Signature generation must remain consistent with what is stored in Firestore.
  */
 export class FirestoreRecipeService {
-  /** Firestore collection name used for storing recipes. */
+  /** Firestore collection name used for recipe documents. */
   private readonly collectionName = 'recipes';
 
   /**
    * Creates the service.
    *
-   * @param firestore Firestore instance used for all database operations.
-   * @param state State service used to cache and expose loaded recipes.
+   * @param firestore AngularFire Firestore instance.
+   * @param state Central application state (used for allowed preference values and caching recipes).
    */
   constructor(
     private readonly firestore: Firestore,
@@ -45,169 +55,171 @@ export class FirestoreRecipeService {
   ) {}
 
   /**
-   * Returns the Firestore collection reference for recipe documents.
-   *
-   * @returns A `CollectionReference` for the configured recipes collection.
+   * Returns the Firestore collection reference for recipes.
    */
   private recipesCollection() {
     return collection(this.firestore, this.collectionName);
   }
 
   /**
-   * Returns an existing `recipeSignature` if present; otherwise computes one, assigns it to the
-   * recipe object, and returns it.
+   * Normalizes an unknown input into a lowercase, trimmed string.
    *
-   * This method mutates `recipe.recipeSignature` when it is missing to avoid recomputation.
+   * - Arrays are treated as "first element"
+   * - null/undefined becomes empty string
+   */
+  private lower(v: unknown): string {
+    if (Array.isArray(v)) return String(v[0] ?? '').trim().toLowerCase();
+    if (v == null) return '';
+    return String(v).trim().toLowerCase();
+  }
+
+  /**
+   * Helper requested for consistent "safe fallback" behavior.
    *
-   * @param recipe The recipe to read or enrich with a signature.
-   * @returns A deterministic signature string for the recipe.
+   * @param value Input value that may be null/undefined/invalid.
+   * @param fallback Value returned when `value` is null/undefined.
+   */
+  private noticeNodeHelper<T>(value: T | null | undefined, fallback: T): T {
+    return value ?? fallback;
+  }
+
+  /**
+   * Returns allowed cuisine values derived from current UI options (lowercased).
+   */
+  private get allowedCuisines(): Set<string> {
+    const items = this.state.preferencesOptions.cuisine.map((c) => this.lower(c.name));
+    return new Set(items);
+  }
+
+  /**
+   * Returns allowed diet preference values derived from current UI options (lowercased).
+   */
+  private get allowedDietPreferences(): Set<string> {
+    const items = (this.state.preferencesOptions.dietPreferences ?? []).map((d) => this.lower(d));
+    return new Set(items);
+  }
+
+  /**
+   * Returns allowed cooking time values derived from current UI options (lowercased).
+   */
+  private get allowedCookingTimes(): Set<string> {
+    const items = this.state.preferencesOptions.times.map((t) => this.lower(t.value));
+    return new Set(items);
+  }
+
+  /**
+   * Resolves a default cuisine that is guaranteed to be within the allowed cuisine set.
+   */
+  private defaultCuisine(): Cuisine {
+    if (this.allowedCuisines.has('fusion')) return 'fusion';
+    const first = this.lower(this.state.preferencesOptions.cuisine[0]?.name);
+    return (first as Cuisine) || 'fusion';
+  }
+
+  /**
+   * Resolves a default diet preference that is guaranteed to be within the allowed set.
+   */
+  private defaultDietPreference(): DietPreference {
+    if (this.allowedDietPreferences.has('no preferences')) return 'no preferences';
+    const first = this.lower(this.state.preferencesOptions.dietPreferences[0]);
+    return (first as DietPreference) || 'no preferences';
+  }
+
+  /**
+   * Resolves a default cooking time that is guaranteed to be within the allowed set.
+   */
+  private defaultCookingTime(): CookingTimeCategory {
+    if (this.allowedCookingTimes.has('quick')) return 'quick';
+    const first = this.lower(this.state.preferencesOptions.times[0]?.value);
+    return (first as CookingTimeCategory) || 'quick';
+  }
+
+  /**
+   * Canonicalizes preferences to stable, allowed values.
+   *
+   * - Values are lowercased
+   * - Values not present in the allowed sets are replaced by defaults
+   *
+   * @param input Partial preferences from any source (generated recipes, Firestore, etc.).
+   */
+  private canonicalPreferences(input?: Partial<RecipePreferences>): RecipePreferences {
+    const cuisine = this.lower(input?.cuisine);
+    const cookingTime = this.lower(input?.cookingTime);
+    const diet = this.lower(input?.dietPreferences);
+
+    return {
+      cuisine: (this.allowedCuisines.has(cuisine) ? cuisine : this.defaultCuisine()) as Cuisine,
+      cookingTime: (this.allowedCookingTimes.has(cookingTime) ? cookingTime : this.defaultCookingTime()) as CookingTimeCategory,
+      dietPreferences: (this.allowedDietPreferences.has(diet) ? diet : this.defaultDietPreference()) as DietPreference,
+    };
+  }
+
+  /**
+   * Returns an existing signature on the recipe or computes and stores a new one.
+   *
+   * @param recipe Recipe object to ensure has a signature.
    */
   getOrCreateSignature(recipe: GeneratedRecipe): string {
-    if (recipe.recipeSignature) {
-      return recipe.recipeSignature;
-    }
+    if (recipe.recipeSignature) return recipe.recipeSignature;
     const signature = this.buildRecipeSignature(recipe);
     recipe.recipeSignature = signature;
     return signature;
   }
 
   /**
-   * Builds a stable, comparable key from all ingredients.
-   *
-   * The key is created by:
-   * - combining user-provided and extra ingredients
-   * - normalizing each ingredient (name, size, unit)
-   * - sorting the normalized entries
-   * - joining them into a single string
-   *
-   * @param recipe Recipe whose ingredients are used to build the key.
-   * @returns A deterministic string representing the recipe's ingredient set.
-   */
-  private buildIngredientsKey(recipe: GeneratedRecipe): string {
-    const allIngredients: RecipeIngredient[] = [
-      ...recipe.ingredients.yourIngredients,
-      ...recipe.ingredients.extraIngredients,
-    ];
-    return allIngredients
-      .map((ingredient) => this.normalizeIngredient(ingredient))
-      .sort()
-      .join(';');
-  }
-
-  /**
-   * Normalizes a single ingredient into a stable string representation.
-   *
-   * Normalization rules:
-   * - name is trimmed and lowercased
-   * - serving size defaults to 0 if missing
-   * - unit prefers abbreviation, then name, otherwise empty string
-   *
-   * @param ingredient The ingredient to normalize.
-   * @returns A normalized string in the form `{name}|{size}|{unit}`.
+   * Normalizes an ingredient into a stable signature fragment.
    */
   private normalizeIngredient(ingredient: RecipeIngredient): string {
-    const name = ingredient.ingredient.trim().toLowerCase();
+    const name = this.lower(ingredient.ingredient);
     const size = ingredient.servingSize ?? 0;
-    const unit = ingredient.unit?.abbreviation || ingredient.unit?.name || '';
+    const unit = this.lower(ingredient.unit?.abbreviation || ingredient.unit?.name || '');
     return `${name}|${size}|${unit}`;
   }
 
   /**
-   * Converts an unknown value into a trimmed, lowercased string in a defensive way.
-   *
-   * Behavior:
-   * - arrays: uses the first element
-   * - null/undefined: returns an empty string
-   * - everything else: stringifies, trims and lowercases
-   *
-   * @param value Any value that should be treated as a string.
-   * @returns A normalized lowercased string (or empty string).
+   * Builds a deterministic ingredient key from both user and extra ingredients.
    */
-  private safeLower(value: unknown): string {
-    if (Array.isArray(value)) return String(value[0] ?? '').trim().toLowerCase();
-    if (value == null) return '';
-    return String(value).trim().toLowerCase();
+  private buildIngredientsKey(recipe: GeneratedRecipe): string {
+    const yours = recipe.ingredients?.yourIngredients ?? [];
+    const extras = recipe.ingredients?.extraIngredients ?? [];
+    return [...yours, ...extras].map((i) => this.normalizeIngredient(i)).sort().join(';');
   }
 
   /**
-   * Builds a deterministic signature that identifies a recipe across generations/sessions.
+   * Builds the deterministic recipe signature used for de-duplication.
    *
-   * The signature is based on:
-   * - title
-   * - preference fields (cuisine, cooking time, diet preferences)
-   * - cooks amount
+   * Signature parts:
+   * - normalized title
+   * - canonicalized preferences (cuisine, cookingTime, dietPreferences)
+   * - cooksAmount
    * - normalized ingredient key
-   *
-   * @param recipe Recipe to compute the signature for.
-   * @returns A stable signature string used for Firestore lookups.
    */
   private buildRecipeSignature(recipe: GeneratedRecipe): string {
-    const title = this.safeLower(recipe.title);
-    const prefs = recipe.preferences ?? {};
-    const cuisine = this.safeLower((prefs as any).cuisine);
-    const time = this.safeLower((prefs as any).cookingTime);
-    const diet = this.safeLower((prefs as any).dietPreferences);
+    const prefs = this.canonicalPreferences(recipe.preferences ?? {});
+    const title = this.lower(recipe.title);
     const cooks = String(recipe.cooksAmount ?? 0);
     const ingredientsKey = this.buildIngredientsKey(recipe);
-    return [title, cuisine, time, diet, cooks, ingredientsKey].join('||');
+    return [title, prefs.cuisine, prefs.cookingTime, prefs.dietPreferences, cooks, ingredientsKey].join('||');
   }
 
   /**
-   * Finds a recipe document by its signature.
+   * Finds the first Firestore recipe document with the given signature.
    *
-   * @param signature Deterministic signature used to identify a recipe.
-   * @returns The first matching recipe including its Firestore document id, or `null` if none exists.
-   */
-  private async findBySignature(
-    signature: string,
-  ): Promise<(GeneratedRecipe & { id: string }) | null> {
-    const colRef = this.recipesCollection();
-    const qRef = query(colRef, where('recipeSignature', '==', signature));
-    const snap = await getDocs(qRef);
-    if (snap.empty) {
-      return null;
-    }
-    const docSnap = snap.docs[0];
-    return {
-      id: docSnap.id,
-      ...(docSnap.data() as GeneratedRecipe),
-    };
-  }
-
-  /**
-   * Creates a new recipe document in Firestore.
-   *
-   * @param recipe The recipe to persist.
-   * @param signature The recipe signature to store with the document.
-   * @param likes Initial likes value to persist.
-   * @param options Optional flags (e.g. whether this is a seed recipe).
-   * @returns The newly created Firestore document id.
-   */
-  private async createRecipeDoc(
-    recipe: GeneratedRecipe,
-    signature: string,
-    likes: number,
-    options?: { isSeed?: boolean },
-  ): Promise<string> {
-    const payload: any = this.buildRecipePayload(recipe, signature, likes, options);
-    const docRef = await addDoc(this.recipesCollection(), payload);
-    return docRef.id;
-  }
-
-  /**
-   * Builds the payload stored in Firestore for a recipe.
-   *
-   * Adds/overrides:
-   * - `recipeSignature`
-   * - `likes`
-   * - `isSeedRecipe`
-   * - `createdAt`
-   *
-   * @param recipe The source recipe data.
    * @param signature Deterministic recipe signature.
-   * @param likes Likes value to store.
-   * @param options Optional flags (e.g. seed recipe marker).
-   * @returns A Firestore-ready payload object.
+   * @returns Recipe with `id` if found, otherwise `null`.
+   */
+  private async findBySignature(signature: string): Promise<(GeneratedRecipe & { id: string }) | null> {
+    const qRef = query(this.recipesCollection(), where('recipeSignature', '==', signature));
+    const snap = await getDocs(qRef);
+    if (snap.empty) return null;
+    const docSnap = snap.docs[0];
+    return { id: docSnap.id, ...(docSnap.data() as GeneratedRecipe) };
+  }
+
+  /**
+   * Builds the payload shape stored in Firestore.
+   *
+   * Preferences are canonicalized before persisting.
    */
   private buildRecipePayload(
     recipe: GeneratedRecipe,
@@ -215,8 +227,16 @@ export class FirestoreRecipeService {
     likes: number,
     options?: { isSeed?: boolean },
   ): any {
+    const prefs = this.canonicalPreferences(recipe.preferences ?? {});
     return {
-      ...recipe,
+      title: recipe.title,
+      cookingTimeText: recipe.cookingTimeText ?? '',
+      cookingTimeMinutes: recipe.cookingTimeMinutes ?? null,
+      cooksAmount: recipe.cooksAmount,
+      nutritionalInformation: recipe.nutritionalInformation,
+      preferences: prefs,
+      ingredients: recipe.ingredients,
+      directions: recipe.directions,
       recipeSignature: signature,
       likes,
       isSeedRecipe: options?.isSeed ?? false,
@@ -225,69 +245,51 @@ export class FirestoreRecipeService {
   }
 
   /**
-   * Ensures each given recipe is present in Firestore and returns the updated list.
+   * Creates a new recipe document in Firestore.
    *
-   * Intended use: after generating recipes, you can sync them so each one has a stable document id
-   * and signature information.
+   * @returns The created document id.
+   */
+  private async createRecipeDoc(
+    recipe: GeneratedRecipe,
+    signature: string,
+    likes: number,
+    options?: { isSeed?: boolean },
+  ): Promise<string> {
+    const payload = this.buildRecipePayload(recipe, signature, likes, options);
+    const docRef = await addDoc(this.recipesCollection(), payload);
+    return docRef.id;
+  }
+
+  /**
+   * Ensures all provided recipes exist in the cookbook, returning updated recipe objects.
    *
-   * @param recipes List of generated recipes to sync.
-   * @returns A list of recipes enriched with persisted ids/signatures/likes.
+   * @param recipes Generated recipes to sync into Firestore.
    */
   async syncGeneratedRecipes(recipes: GeneratedRecipe[]): Promise<GeneratedRecipe[]> {
-    const updated: GeneratedRecipe[] = [];
-
-    for (const recipe of recipes) {
-      const synced = await this.ensureRecipeInCookbook(recipe, { isSeed: false });
-      updated.push(synced);
-    }
-
-    return updated;
+    const list = recipes ?? [];
+    const out: GeneratedRecipe[] = [];
+    for (const recipe of list) out.push(await this.ensureRecipeInCookbook(recipe, { isSeed: false }));
+    return out;
   }
 
   /**
-   * Ensures a single recipe exists in the cookbook collection.
+   * Ensures a single recipe exists in Firestore, reusing an existing document if present.
    *
-   * If a recipe with the same signature already exists, it returns a merged representation using
-   * the existing document id and likes. Otherwise it creates a new document.
-   *
-   * @param recipe The recipe to ensure/persist.
-   * @param options Optional flags such as whether the created document should be marked as seed.
-   * @returns The recipe enriched with `id`, `recipeSignature` and `likes`.
+   * @param recipe Recipe to ensure exists.
+   * @param options Optional flags (e.g. seed recipe).
    */
-  async ensureRecipeInCookbook(
-    recipe: GeneratedRecipe,
-    options?: { isSeed?: boolean },
-  ): Promise<GeneratedRecipe> {
+  async ensureRecipeInCookbook(recipe: GeneratedRecipe, options?: { isSeed?: boolean }): Promise<GeneratedRecipe> {
     const signature = this.getOrCreateSignature(recipe);
     const existing = await this.findBySignature(signature);
-
-    if (existing) {
-      return this.mergeExistingRecipe(recipe, existing, signature);
-    }
+    if (existing) return this.mergeExistingRecipe(recipe, existing, signature);
 
     const likes = recipe.likes ?? 0;
-    const docId = await this.createRecipeDoc(recipe, signature, likes, options);
-
-    return {
-      ...recipe,
-      id: docId,
-      recipeSignature: signature,
-      likes,
-    };
+    const id = await this.createRecipeDoc(recipe, signature, likes, options);
+    return { ...recipe, id, recipeSignature: signature, likes };
   }
 
   /**
-   * Merges a local recipe with an existing Firestore recipe document.
-   *
-   * The merge prioritizes the incoming recipe fields but ensures:
-   * - persisted document id is used
-   * - deterministic signature is present
-   * - likes are taken from Firestore (fallback 0)
-   *
-   * @param recipe The local recipe representation.
-   * @param existing The Firestore-backed recipe including its document id.
-   * @param signature Deterministic recipe signature to apply.
-   * @returns A recipe object aligned with the persisted Firestore document.
+   * Merges an existing Firestore recipe identity (id/likes/signature) into a local recipe object.
    */
   private mergeExistingRecipe(
     recipe: GeneratedRecipe,
@@ -295,131 +297,98 @@ export class FirestoreRecipeService {
     signature: string,
   ): GeneratedRecipe {
     const likes = existing.likes ?? 0;
-
-    return {
-      ...recipe,
-      id: existing.id,
-      recipeSignature: signature,
-      likes,
-    };
+    return { ...recipe, id: existing.id, recipeSignature: signature, likes };
   }
 
   /**
-   * Updates the likes count for a recipe based on the favorite toggle state.
-   *
-   * Behavior:
-   * - Resolves the recipe document via signature (create new doc if missing).
-   * - Applies an atomic increment (+1 or -1) to the `likes` field.
-   * - Returns the computed new likes count (clamped at 0).
-   *
-   * @param recipe Recipe whose likes should be updated.
-   * @param isFavorite Whether the user marked it as favorite (true => +1, false => -1).
-   * @returns The updated likes count.
-   */
-  async updateLikesForRecipe(recipe: GeneratedRecipe, isFavorite: boolean): Promise<number> {
-    const signature = this.getOrCreateSignature(recipe);
-    const existing = await this.findBySignature(signature);
-    const delta = this.getLikesDelta(isFavorite);
-
-    if (!existing) {
-      return this.handleNewLikedRecipe(recipe, signature, isFavorite);
-    }
-
-    const docRef = this.buildDocRef(existing.id);
-    const currentLikes = existing.likes ?? 0;
-    const newLikes = this.computeNewLikes(currentLikes, delta);
-
-    await updateDoc(docRef, { likes: increment(delta) });
-
-    return newLikes;
-  }
-
-  /**
-   * Calculates the increment delta used for likes updates.
-   *
-   * @param isFavorite If true, like is added; if false, like is removed.
-   * @returns `+1` when favorited, otherwise `-1`.
-   */
-  private getLikesDelta(isFavorite: boolean): number {
-    return isFavorite ? 1 : -1;
-  }
-
-  /**
-   * Computes the new likes count and prevents it from going below 0.
-   *
-   * @param currentLikes Current likes count.
-   * @param delta Increment/decrement value to apply.
-   * @returns The resulting likes count, clamped to a minimum of 0.
-   */
-  private computeNewLikes(currentLikes: number, delta: number): number {
-    return Math.max(currentLikes + delta, 0);
-  }
-
-  /**
-   * Builds a Firestore document reference for the recipes collection.
-   *
-   * @param id Firestore document id.
-   * @returns A `DocumentReference` for the given recipe id.
+   * Builds a document reference for a recipe id.
    */
   private buildDocRef(id: string) {
     return doc(this.firestore, this.collectionName, id);
   }
 
   /**
-   * Handles likes updates for a recipe that does not yet exist in Firestore.
-   *
-   * Creates a new document with an initial likes value of 1 (if favorited) or 0.
-   * Also mutates the passed-in recipe by setting its `id`.
-   *
-   * @param recipe The local recipe to persist.
-   * @param signature Deterministic recipe signature.
-   * @param isFavorite Whether the recipe is being favorited.
-   * @returns The initial likes value stored for the newly created recipe.
+   * Computes the likes delta for a favorite toggle.
    */
-  private async handleNewLikedRecipe(
-    recipe: GeneratedRecipe,
-    signature: string,
-    isFavorite: boolean,
-  ): Promise<number> {
-    const likes = isFavorite ? 1 : 0;
+  private likesDelta(isFavorite: boolean): number {
+    return isFavorite ? 1 : -1;
+  }
 
-    const docId = await this.createRecipeDoc(recipe, signature, likes, { isSeed: false });
-    recipe.id = docId;
+  /**
+   * Creates a recipe document when a like toggle occurs on a recipe not yet stored.
+   */
+  private async createLikedRecipe(recipe: GeneratedRecipe, signature: string, isFavorite: boolean): Promise<number> {
+    const likes = isFavorite ? 1 : 0;
+    const id = await this.createRecipeDoc(recipe, signature, likes, { isSeed: false });
+    recipe.id = id;
     return likes;
   }
 
   /**
-   * Fetches a recipe by its Firestore document id.
-   *
-   * @param id Firestore document id.
-   * @returns The recipe including its `id`, or `null` if the document does not exist.
+   * Updates likes for an existing recipe document and returns the new likes count.
    */
-  async getRecipeById(id: string): Promise<GeneratedRecipe | null> {
-    const docRef = this.buildDocRef(id);
-    const snap = await getDoc(docRef);
-    if (!snap.exists()) {
-      return null;
-    }
-    return {
-      id: snap.id,
-      ...(snap.data() as GeneratedRecipe),
-    };
+  private async updateExistingLikes(existingId: string, currentLikes: number, delta: number): Promise<number> {
+    const next = Math.max(currentLikes + delta, 0);
+    await updateDoc(this.buildDocRef(existingId), { likes: increment(delta) });
+    return next;
   }
 
   /**
-   * Loads cookbook recipes from Firestore.
+   * Updates Firestore likes for a recipe when the user toggles favorite.
    *
-   * If `cuisine` is provided, it filters by `preferences.cuisine`.
-   * The resulting list is also written into `StateService.allRecipes`.
+   * - If the recipe does not exist yet: creates it with likes 1 or 0
+   * - If it exists: increments/decrements likes atomically
+   *
+   * @param recipe Recipe to like/unlike.
+   * @param isFavorite Whether the recipe is being favorited (true) or unfavorited (false).
+   * @returns The computed new likes count.
+   */
+  async updateLikesForRecipe(recipe: GeneratedRecipe, isFavorite: boolean): Promise<number> {
+    const signature = this.getOrCreateSignature(recipe);
+    const existing = await this.findBySignature(signature);
+    const delta = this.likesDelta(isFavorite);
+
+    if (!existing) return this.createLikedRecipe(recipe, signature, isFavorite);
+
+    const currentLikes = this.noticeNodeHelper(existing.likes, 0);
+    return this.updateExistingLikes(existing.id, currentLikes, delta);
+  }
+
+  /**
+   * Loads a single recipe by Firestore document id.
+   *
+   * @param id Firestore document id.
+   * @returns The recipe or `null` if the document does not exist.
+   */
+  async getRecipeById(id: string): Promise<GeneratedRecipe | null> {
+    const snap = await getDoc(this.buildDocRef(id));
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...(snap.data() as GeneratedRecipe) };
+  }
+
+  /**
+   * Canonicalizes preferences for a list of recipes and writes them into state.
+   */
+  private canonicalizeAndStore(recipes: GeneratedRecipe[]): GeneratedRecipe[] {
+    const cleaned = (recipes ?? []).map((r) => ({
+      ...r,
+      preferences: this.canonicalPreferences(r.preferences ?? {}),
+    }));
+    this.state.allRecipes = cleaned;
+    return cleaned;
+  }
+
+  /**
+   * Loads cookbook recipes, optionally filtered by cuisine.
    *
    * @param cuisine Optional cuisine filter.
-   * @returns Observable that emits the loaded recipes array.
+   * @returns Observable emitting the loaded recipes (with canonicalized preferences).
    */
   loadCookbook(cuisine?: string): Observable<GeneratedRecipe[]> {
-    const colRef = this.recipesCollection();
-    const ref = cuisine
-      ? query(colRef, where('preferences.cuisine', '==', cuisine))
-      : colRef;
+    const cuisineKey = cuisine ? this.lower(cuisine) : '';
+    const base = this.recipesCollection();
+    const ref = cuisineKey ? query(base, where('preferences.cuisine', '==', cuisineKey)) : base;
+
     return from(getDocs(ref)).pipe(
       map((snap) =>
         snap.docs.map(
@@ -430,31 +399,27 @@ export class FirestoreRecipeService {
             }) as GeneratedRecipe,
         ),
       ),
-      map((recipes) => this.updateStateWithRecipes(recipes)),
+      map((recipes) => this.canonicalizeAndStore(recipes)),
     );
   }
 
   /**
-   * Writes the given recipes to the shared application state and returns them unchanged.
-   *
-   * @param recipes Recipes to store in `StateService.allRecipes`.
-   * @returns The same recipe list that was provided.
+   * Canonicalizes preferences for a list of recipes without touching global state.
    */
-  private updateStateWithRecipes(recipes: GeneratedRecipe[]): GeneratedRecipe[] {
-    this.state.allRecipes = recipes;
-    return recipes;
+  private canonicalizeOnly(recipes: GeneratedRecipe[]): GeneratedRecipe[] {
+    return (recipes ?? []).map((r) => ({
+      ...r,
+      preferences: this.canonicalPreferences(r.preferences ?? {}),
+    }));
   }
 
   /**
-   * Loads all seed recipes from Firestore.
+   * Loads seed recipes from Firestore.
    *
-   * Seed recipes are identified by `isSeedRecipe === true`.
-   *
-   * @returns Observable that emits the loaded seed recipes array.
+   * @returns Observable emitting seed recipes (with canonicalized preferences).
    */
   loadSeedRecipes(): Observable<GeneratedRecipe[]> {
-    const colRef = this.recipesCollection();
-    const qRef = query(colRef, where('isSeedRecipe', '==', true));
+    const qRef = query(this.recipesCollection(), where('isSeedRecipe', '==', true));
     return from(getDocs(qRef)).pipe(
       map((snap) =>
         snap.docs.map(
@@ -465,6 +430,7 @@ export class FirestoreRecipeService {
             }) as GeneratedRecipe,
         ),
       ),
+      map((recipes) => this.canonicalizeOnly(recipes)),
     );
   }
 }
