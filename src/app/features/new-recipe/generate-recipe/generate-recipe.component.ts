@@ -39,17 +39,19 @@ export class GenerateRecipeComponent {
     { name: 'piece', abbreviation: '' },
   ];
 
-  /** Default serving size applied when adding a new ingredient. */
-  readonly defaultServingSize = 100;
-
   /** Indicates whether the main unit dropdown is open. */
   isDropdownOpen = false;
 
   /** Currently selected unit for the ingredient being entered. */
   selectedUnit: UnitOfMeasurement = this.unitsOfMeasurement[0];
 
-  /** Current serving size input value. */
-  servingSize = this.defaultServingSize;
+  /**
+   * Current serving size input value.
+   *
+   * Kept as `null` by default so the UI shows only the placeholder
+   * until the user enters a value.
+   */
+  servingSize: number | null = null;
 
   /** Current ingredient name input value. */
   ingredientName = '';
@@ -64,7 +66,6 @@ export class GenerateRecipeComponent {
    * Creates the generate-recipe component.
    *
    * @param state Central application state service.
-   * @param elementRef Reference to the host DOM element (used for outside-click detection).
    * @param ingredientAutocomplete Service providing ingredient autocomplete suggestions.
    */
   constructor(
@@ -91,6 +92,8 @@ export class GenerateRecipeComponent {
    *
    * Closes dropdowns and suggestions when the user clicks outside
    * of dropdowns / ingredient input areas.
+   *
+   * @param event Mouse click event.
    */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -103,10 +106,22 @@ export class GenerateRecipeComponent {
     this.inlineSuggestion = '';
   }
 
+  /**
+   * Checks whether the click target is inside a unit dropdown element.
+   *
+   * @param target Click target element.
+   * @returns True if click happened inside a unit dropdown.
+   */
   private isClickInsideAnyUnitDropdown(target: HTMLElement): boolean {
     return Boolean(target.closest('.generate__pill-dropdown'));
   }
 
+  /**
+   * Checks whether the click target is inside the ingredient autocomplete area.
+   *
+   * @param target Click target element.
+   * @returns True if click happened inside the ingredient input wrapper.
+   */
   private isClickInsideIngredientAutocomplete(target: HTMLElement): boolean {
     return Boolean(target.closest('.generate__ingredient-input-wrapper'));
   }
@@ -325,11 +340,14 @@ export class GenerateRecipeComponent {
   /**
    * Resets the ingredient form to its default state.
    *
+   * Leaves `servingSize` as `null` so the placeholder is visible
+   * instead of an actual value.
+   *
    * @param form Template-driven Angular form reference.
    */
   private resetForm(form: NgForm): void {
     this.ingredientName = '';
-    this.servingSize = this.defaultServingSize;
+    this.servingSize = null;
     this.selectedUnit = this.unitsOfMeasurement[0];
     this.ingredientSuggestions = [];
     this.inlineSuggestion = '';
