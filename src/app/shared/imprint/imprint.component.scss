@@ -133,6 +133,12 @@
   color: rgba($dark-green, 0.85);
 }
 
+.imprint__section--divider {
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 2px solid rgba($dark-green, 0.2);
+}
+
 .imprint__section--last {
   padding-top: 6px;
   border-top: 1px solid rgba($dark-green, 0.15);

@@ -1,0 +1,388 @@
+<main class="privacy-page">
+  <div class="privacy-page__inner">
+    <header class="privacy-page__header">
+      <a [routerLink]="['/']">
+        <img
+          src="img/logo_green.png"
+          alt="Code à Cuisine logo"
+          class="privacy-page__logo"
+        />
+      </a>
+    </header>
+    <a class="privacy-page__back-link" [routerLink]="['/']">
+      <span class="privacy-page__back-icon-wrapper">
+        <img
+          src="img/arrow_green_left.png"
+          alt="back"
+          class="privacy-page__back-icon"
+        />
+      </span>
+      <span class="privacy-page__back-text">Back</span>
+    </a>
+    <section class="privacy">
+      <h1 class="privacy__title">Privacy Policy</h1>
+      <div class="privacy__card">
+
+        <nav class="privacy__toc">
+          <h2 class="privacy__section-title">Contents</h2>
+          <ol class="privacy__toc-list">
+            <li><a href="/privacy-policy#controller">Controller</a></li>
+            <li><a href="/privacy-policy#dpo">Data Protection Officer</a></li>
+            <li><a href="/privacy-policy#data-collected">Data We Collect</a></li>
+            <li><a href="/privacy-policy#purposes">Purposes and Legal Basis</a></li>
+            <li><a href="/privacy-policy#processors">Third-Party Processors</a></li>
+            <li><a href="/privacy-policy#transfers">International Data Transfers</a></li>
+            <li><a href="/privacy-policy#cookies">Cookies and Similar Technologies</a></li>
+            <li><a href="/privacy-policy#retention">Retention Periods</a></li>
+            <li><a href="/privacy-policy#rights">Your Rights</a></li>
+            <li><a href="/privacy-policy#authority">Supervisory Authority</a></li>
+            <li><a href="/privacy-policy#automated">Automated Decision-Making</a></li>
+            <li><a href="/privacy-policy#obligation">Obligation to Provide Data</a></li>
+            <li><a href="/privacy-policy#changes">Changes to This Policy</a></li>
+            <li><a href="/privacy-policy#severability">Severability</a></li>
+          </ol>
+        </nav>
+
+        <section class="privacy__section" id="controller">
+          <h2 class="privacy__section-title">1. Controller</h2>
+          <p class="privacy__paragraph">
+            The controller responsible for data processing on this website within the meaning of the
+            General Data Protection Regulation (GDPR) is:
+          </p>
+          <p class="privacy__text">Simon Maximilian Heistermann</p>
+          <p class="privacy__text">Mutter-Teresa-Weg 6, 46325 Borken, Germany</p>
+          <p class="privacy__text">
+            Email:
+            <a href="mailto:simon@heistermann-solutions.de" class="privacy__link">
+              simon&#64;heistermann-solutions.de
+            </a>
+          </p>
+        </section>
+
+        <section class="privacy__section" id="dpo">
+          <h2 class="privacy__section-title">2. Data Protection Officer</h2>
+          <p class="privacy__paragraph">
+            We are not legally required to appoint a data protection officer pursuant to
+            § 38 of the German Federal Data Protection Act (BDSG). For any data protection
+            inquiries, please contact us directly at
+            <a href="mailto:simon@heistermann-solutions.de" class="privacy__link">
+              simon&#64;heistermann-solutions.de</a>.
+          </p>
+        </section>
+
+        <section class="privacy__section" id="data-collected">
+          <h2 class="privacy__section-title">3. Data We Collect</h2>
+          <p class="privacy__paragraph">
+            We process personal data that you provide to us or that is automatically collected
+            when you use this application.
+          </p>
+
+          <h3 class="privacy__subsection-title">3.1 Recipe Generation Data</h3>
+          <p class="privacy__paragraph">
+            When you generate recipes, the following data is transmitted to our backend service
+            for processing:
+          </p>
+          <ul class="privacy__list">
+            <li>Ingredient names, serving sizes, and units of measurement</li>
+            <li>Cooking preferences (cooking time, cuisine, diet preferences)</li>
+            <li>Number of portions and number of cooks</li>
+          </ul>
+          <p class="privacy__paragraph">
+            This data is sent to an n8n workflow hosted on Render.com, which forwards it to an
+            AI model (Google Gemini) for recipe generation. The generated recipes are then stored
+            in our database.
+          </p>
+
+          <h3 class="privacy__subsection-title">3.2 Recipe Storage Data</h3>
+          <p class="privacy__paragraph">
+            Generated recipes are stored in Google Firebase Firestore. Stored data includes:
+          </p>
+          <ul class="privacy__list">
+            <li>Recipe titles, ingredients, and cooking directions</li>
+            <li>Cooking preferences and nutritional information</li>
+            <li>Like/favorite counters (aggregated, not linked to individual users)</li>
+            <li>Recipe signatures (for deduplication)</li>
+            <li>Creation timestamps</li>
+          </ul>
+
+          <h3 class="privacy__subsection-title">3.3 Favorites (Local Storage)</h3>
+          <p class="privacy__paragraph">
+            When you mark a recipe as a favorite, this preference is stored exclusively in your
+            browser's localStorage. This data never leaves your device and is not transmitted to
+            our servers. You can clear it at any time through your browser settings.
+          </p>
+
+          <h3 class="privacy__subsection-title">3.4 Technical Data</h3>
+          <p class="privacy__paragraph">
+            When you visit this website, the following data may be automatically collected by
+            our hosting provider:
+          </p>
+          <ul class="privacy__list">
+            <li>IP address</li>
+            <li>Browser type and version</li>
+            <li>Operating system</li>
+            <li>Date, time, and duration of access</li>
+            <li>Pages visited</li>
+          </ul>
+        </section>
+
+        <section class="privacy__section" id="purposes">
+          <h2 class="privacy__section-title">4. Purposes and Legal Basis</h2>
+          <p class="privacy__paragraph">
+            We process your personal data for the following purposes and on the following
+            legal bases:
+          </p>
+          <div class="privacy__table-wrapper">
+            <table class="privacy__table">
+              <thead>
+                <tr>
+                  <th>Purpose</th>
+                  <th>Legal Basis</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Recipe generation processing</td>
+                  <td>Art. 6(1)(b) GDPR — necessary for service provision at your request</td>
+                </tr>
+                <tr>
+                  <td>Recipe storage in database</td>
+                  <td>Art. 6(1)(f) GDPR — legitimate interest in providing a functional cookbook</td>
+                </tr>
+                <tr>
+                  <td>Website hosting &amp; security</td>
+                  <td>Art. 6(1)(f) GDPR — legitimate interest in operating a secure website</td>
+                </tr>
+                <tr>
+                  <td>Local favorites storage</td>
+                  <td>Art. 6(1)(f) GDPR — legitimate interest in improving user experience</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="privacy__section" id="processors">
+          <h2 class="privacy__section-title">5. Third-Party Processors</h2>
+          <p class="privacy__paragraph">
+            We use the following third-party service providers to operate this application.
+            Each processor has entered into a Data Processing Agreement (DPA) with us in
+            accordance with Art. 28 GDPR.
+          </p>
+
+          <h3 class="privacy__subsection-title">Google Cloud / Firebase</h3>
+          <p class="privacy__text">Google Ireland Limited, Dublin, Ireland (Google LLC, USA)</p>
+          <p class="privacy__paragraph">
+            <span class="privacy__label">Purpose:</span>
+            Database hosting (Firestore) for recipe storage and like counters.
+          </p>
+          <p class="privacy__paragraph">
+            <span class="privacy__label">Data processed:</span>
+            Recipe data, like counters, timestamps, recipe signatures.
+          </p>
+
+          <h3 class="privacy__subsection-title">Render Services, Inc.</h3>
+          <p class="privacy__text">San Francisco, California, USA</p>
+          <p class="privacy__paragraph">
+            <span class="privacy__label">Purpose:</span>
+            Hosting of n8n workflow for AI-powered recipe generation.
+          </p>
+          <p class="privacy__paragraph">
+            <span class="privacy__label">Data processed:</span>
+            Ingredient data, cooking preferences, technical request data (IP address).
+          </p>
+
+          <h3 class="privacy__subsection-title">Google (Gemini AI)</h3>
+          <p class="privacy__text">Google Ireland Limited, Dublin, Ireland (Google LLC, USA)</p>
+          <p class="privacy__paragraph">
+            <span class="privacy__label">Purpose:</span>
+            AI-based recipe generation from user-provided ingredients and preferences.
+          </p>
+          <p class="privacy__paragraph">
+            <span class="privacy__label">Data processed:</span>
+            Ingredient names, cooking preferences, number of portions and cooks.
+          </p>
+        </section>
+
+        <section class="privacy__section" id="transfers">
+          <h2 class="privacy__section-title">6. International Data Transfers</h2>
+          <p class="privacy__paragraph">
+            Our third-party processors Google and Render are based in or transfer data to the
+            United States. Data transfers to the US are conducted on the following legal bases:
+          </p>
+          <ul class="privacy__list">
+            <li>
+              <span class="privacy__label">EU-US Data Privacy Framework (DPF):</span>
+              The European Commission has adopted an adequacy decision for the EU-US Data Privacy
+              Framework (Commission Implementing Decision of 10 July 2023). Our processors are
+              certified under the DPF, which ensures an adequate level of data protection.
+            </li>
+            <li>
+              <span class="privacy__label">Standard Contractual Clauses (SCCs):</span>
+              As an additional safeguard, Standard Contractual Clauses pursuant to
+              Art. 46(2)(c) GDPR are in place with our processors.
+            </li>
+          </ul>
+        </section>
+
+        <section class="privacy__section" id="cookies">
+          <h2 class="privacy__section-title">7. Cookies and Similar Technologies</h2>
+          <p class="privacy__paragraph">
+            This website does not use cookies. No cookie consent banner is required or displayed.
+          </p>
+          <p class="privacy__paragraph">
+            We use your browser's localStorage to store the following data locally on your device:
+          </p>
+          <ul class="privacy__list">
+            <li>Favorite recipe preferences (stored under the key <code>cac_favorites</code>)</li>
+          </ul>
+          <p class="privacy__paragraph">
+            This data never leaves your browser and is not transmitted to our servers. You can
+            clear it at any time through your browser settings.
+          </p>
+        </section>
+
+        <section class="privacy__section" id="retention">
+          <h2 class="privacy__section-title">8. Retention Periods</h2>
+          <p class="privacy__paragraph">
+            We retain data only as long as necessary for the purposes for which it was collected:
+          </p>
+          <div class="privacy__table-wrapper">
+            <table class="privacy__table">
+              <thead>
+                <tr>
+                  <th>Data Category</th>
+                  <th>Retention Period</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Generated recipes (Firestore)</td>
+                  <td>Retained indefinitely as part of the public cookbook, or upon deletion request</td>
+                </tr>
+                <tr>
+                  <td>Server/access logs</td>
+                  <td>Per hosting provider policy (typically 30 days)</td>
+                </tr>
+                <tr>
+                  <td>localStorage data</td>
+                  <td>Until you clear your browser data</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="privacy__section" id="rights">
+          <h2 class="privacy__section-title">9. Your Rights</h2>
+          <p class="privacy__paragraph">
+            Under the GDPR, you have the following rights regarding your personal data:
+          </p>
+          <ul class="privacy__list">
+            <li>
+              <span class="privacy__label">Right of access (Art. 15 GDPR)</span> —
+              You may request confirmation of whether we process your personal data and, if so,
+              obtain a copy of that data.
+            </li>
+            <li>
+              <span class="privacy__label">Right to rectification (Art. 16 GDPR)</span> —
+              You may request correction of inaccurate or incomplete data.
+            </li>
+            <li>
+              <span class="privacy__label">Right to erasure (Art. 17 GDPR)</span> —
+              You may request deletion of your data, subject to legal retention obligations.
+            </li>
+            <li>
+              <span class="privacy__label">Right to restriction (Art. 18 GDPR)</span> —
+              You may request restriction of processing in certain circumstances.
+            </li>
+            <li>
+              <span class="privacy__label">Right to data portability (Art. 20 GDPR)</span> —
+              You may request your data in a structured, commonly used, machine-readable format.
+            </li>
+            <li>
+              <span class="privacy__label">Right to object (Art. 21 GDPR)</span> —
+              You may object to processing based on legitimate interests at any time, for reasons
+              related to your particular situation.
+            </li>
+            <li>
+              <span class="privacy__label">Right to withdraw consent (Art. 7(3) GDPR)</span> —
+              Where processing is based on your consent, you may withdraw consent at any time
+              without affecting the lawfulness of processing carried out before withdrawal.
+            </li>
+          </ul>
+          <p class="privacy__paragraph">
+            To exercise any of these rights, please contact us at
+            <a href="mailto:simon@heistermann-solutions.de" class="privacy__link">
+              simon&#64;heistermann-solutions.de</a>.
+            We will respond within one month of receiving your request.
+          </p>
+        </section>
+
+        <section class="privacy__section" id="authority">
+          <h2 class="privacy__section-title">10. Supervisory Authority</h2>
+          <p class="privacy__paragraph">
+            You have the right to lodge a complaint with a data protection supervisory authority
+            (Art. 77 GDPR). The competent supervisory authority for us is:
+          </p>
+          <p class="privacy__text">
+            Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen (LDI NRW)
+          </p>
+          <p class="privacy__text">Postfach 20 04 44</p>
+          <p class="privacy__text">40102 Düsseldorf, Germany</p>
+          <p class="privacy__text">
+            Website:
+            <a href="https://www.ldi.nrw.de" target="_blank" rel="noopener noreferrer"
+              class="privacy__link">www.ldi.nrw.de</a>
+          </p>
+        </section>
+
+        <section class="privacy__section" id="automated">
+          <h2 class="privacy__section-title">11. Automated Decision-Making</h2>
+          <p class="privacy__paragraph">
+            This application uses AI (Google Gemini) to generate recipe suggestions based on
+            ingredients and preferences you provide. This processing produces recipe content only
+            and does not involve profiling or automated decision-making with legal or similarly
+            significant effects within the meaning of Art. 22 GDPR.
+          </p>
+        </section>
+
+        <section class="privacy__section" id="obligation">
+          <h2 class="privacy__section-title">12. Obligation to Provide Data</h2>
+          <p class="privacy__paragraph">
+            Providing ingredient and preference data is necessary for the application to generate
+            recipes. If you do not provide this data, the recipe generation feature cannot be used.
+            Browsing the cookbook does not require any personal data input.
+          </p>
+        </section>
+
+        <section class="privacy__section" id="changes">
+          <h2 class="privacy__section-title">13. Changes to This Policy</h2>
+          <p class="privacy__paragraph">
+            We may update this privacy policy from time to time to reflect changes in our practices
+            or for legal, regulatory, or operational reasons. Minor corrections or clarifications
+            may take effect immediately. The "Last updated" date below reflects the most recent
+            revision.
+          </p>
+        </section>
+
+        <section class="privacy__section" id="severability">
+          <h2 class="privacy__section-title">14. Severability</h2>
+          <p class="privacy__paragraph">
+            Should any provision of this privacy policy be held invalid or unenforceable, the
+            remaining provisions shall remain in full force and effect. Any invalid provision
+            shall be replaced by a valid provision that comes closest to the intent of the original.
+          </p>
+        </section>
+
+        <section class="privacy__section privacy__section--last">
+          <p class="privacy__meta">
+            <span class="privacy__label">Last updated:</span>
+            <span> {{ lastUpdated }}</span>
+          </p>
+        </section>
+
+      </div>
+    </section>
+  </div>
+</main>

@@ -1,0 +1,33 @@
+@use './../styles/colors.scss' as *;
+@use './../styles/fonts.scss' as fonts;
+
+.app-footer {
+  width: 100%;
+  padding: 16px 0;
+  text-align: center;
+}
+
+.app-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.app-footer__link {
+  font-family: fonts.$font-family-quicksand;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba($primary-green, 0.7);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    color: $primary-green;
+  }
+}
+
+.app-footer__separator {
+  font-size: 14px;
+  color: rgba($primary-green, 0.4);
+}

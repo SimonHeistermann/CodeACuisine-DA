@@ -8,19 +8,8 @@ import { RecipeDetailComponent } from './features/recipe-detail/recipe-detail.co
 import { CookbookComponent } from './features/cookbook/cookbook.component';
 import { RecipesListComponent } from './features/recipes-list/recipes-list.component';
 import { ImprintComponent } from './shared/imprint/imprint.component';
+import { PrivacyPolicyComponent } from './shared/privacy-policy/privacy-policy.component';
 
-/**
- * Application route configuration.
- *
- * Defines all navigable routes of the application and maps them
- * to their corresponding standalone components.
- *
- * Route structure overview:
- * - Landing & generation flow
- * - Cookbook browsing & recipe details
- * - Static legal pages
- * - Fallback redirect for unknown routes
- */
 export const routes: Routes = [
   /**
    * Landing page (hero section).
@@ -73,15 +62,8 @@ export const routes: Routes = [
    */
   { path: 'cookbook/:id', component: RecipeDetailComponent },
 
-  /**
-   * Legal imprint / legal notice page.
-   */
   { path: 'imprint', component: ImprintComponent },
+  { path: 'privacy-policy', component: PrivacyPolicyComponent },
 
-  /**
-   * Wildcard route.
-   *
-   * Redirects all unknown paths back to the landing page.
-   */
   { path: '**', redirectTo: '' },
 ];
